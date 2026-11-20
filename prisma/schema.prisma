@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+enum Role {
+  OWNER
+  MANAGER
+  COUNTER
+  GODOWN
+  ACCOUNTANT
+}
+model Business {
+  id String @id @default(cuid())
+  name String
+  state String @default("21")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members Membership[]
+  records Record[]
+}
+model User {
+  id String @id @default(cuid())
+  phone String @unique
+  name String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  memberships Membership[]
+}
+model Membership {
+  businessId String
+  userId String
+  role Role
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@id([businessId, userId])
+}
+model Record {
+  id String @id @default(cuid())
+  businessId String
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  kind String
+  data Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([businessId, kind])
+}
