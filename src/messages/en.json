@@ -264,5 +264,7 @@
   "supportPhone": "Support phone",
   "helpVideoEn": "English help video URL",
   "helpVideoHi": "Hindi help video URL",
-  "helpVideoOr": "Odia help video URL"
+  "helpVideoOr": "Odia help video URL",
+  "nav_designGallery": "Design gallery",
+  "nav_libraryItem": "Item library"
 }

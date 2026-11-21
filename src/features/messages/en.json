@@ -498,5 +498,17 @@
   "upgradePro": "Upgrade to Pro to add new entries",
   "closeYear": "Close financial year",
   "slabWorkshop": "Reserve or cut a slab",
-  "statementImport": "Import bank statement"
+  "statementImport": "Import bank statement",
+  "designGallery": "Design gallery",
+  "libraryItem": "Item library",
+  "allCategories": "All categories",
+  "alreadyImported": "Already imported",
+  "attachCatalogue": "Attach the downloaded catalogue to your message.",
+  "cataloguePriceNote": "Prices exclude GST.",
+  "libraryPorcelain": "Porcelain floor tile",
+  "libraryWall": "Wall tile",
+  "libraryGloss": "Glossy tile",
+  "libraryAdhesive": "Tile adhesive",
+  "libraryBasin": "Wash basin",
+  "libraryMarble": "Marble slab"
 }

@@ -498,5 +498,17 @@
   "upgradePro": "नई प्रविष्टियों के लिए प्रो प्लान चुनें",
   "closeYear": "वित्तीय वर्ष बंद करें",
   "slabWorkshop": "स्लैब आरक्षित करें या काटें",
-  "statementImport": "बैंक विवरण आयात करें"
+  "statementImport": "बैंक विवरण आयात करें",
+  "designGallery": "डिजाइन गैलरी",
+  "libraryItem": "आइटम लाइब्रेरी",
+  "allCategories": "सभी श्रेणियाँ",
+  "alreadyImported": "पहले से आयातित",
+  "attachCatalogue": "डाउनलोड की गई सूची संदेश में जोड़ें।",
+  "cataloguePriceNote": "कीमतें GST के बिना हैं।",
+  "libraryPorcelain": "पोर्सिलेन फ़्लोर टाइल",
+  "libraryWall": "दीवार टाइल",
+  "libraryGloss": "ग्लॉसी टाइल",
+  "libraryAdhesive": "टाइल चिपकाने का मसाला",
+  "libraryBasin": "वॉश बेसिन",
+  "libraryMarble": "मार्बल स्लैब"
 }

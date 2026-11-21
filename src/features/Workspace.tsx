@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import {DesignGallery,ItemLibrary} from "./Showcase";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -506,6 +507,8 @@ function Working({ slug, book }: { slug: string; book: Snapshot }) {
         "noopener",
       );
   };
+  if(slug==="design-gallery")return <DesignGallery book={book}/>;
+  if(slug==="item-library")return <ItemLibrary book={book}/>;
   if (slug === "calculator")
     return (
       <>
