@@ -1,0 +1,1 @@
+export default function Brand(){return <span className="brand"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="m3 8 13-7 13 7-13 7z" fill="#5ED6C0"/><path d="m3 12 11 6v13L3 25z" fill="#A1ECDA"/><path d="m18 18 11-6v13l-11 6z" fill="#20B6AB"/></svg>TileBook</span>}

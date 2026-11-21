@@ -1,0 +1,23 @@
+name: Database from scratch
+on:
+  push:
+    paths: ["supabase/**", "src/types/**", ".github/workflows/db-check.yml"]
+  pull_request:
+    paths: ["supabase/**", "src/types/**", ".github/workflows/db-check.yml"]
+permissions:
+  contents: read
+jobs:
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx supabase start
+      - run: npm run db:reset
+      - run: npm run db:test
+      - run: npm run db:types
+      - run: git diff --exit-code -- src/types/generated.ts && git ls-files --error-unmatch src/types/generated.ts

@@ -1,0 +1,28 @@
+name: Deploy production
+on: workflow_dispatch
+permissions:
+  contents: read
+concurrency: production-deploy
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx supabase link --project-ref "$SUPABASE_PROJECT_REF"
+      - run: npx --yes vercel@50 pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - run: npx --yes vercel@50 build --prod --token="$VERCEL_TOKEN"
+      - run: npx supabase db push
+      - run: npx --yes vercel@50 deploy --prebuilt --prod --token="$VERCEL_TOKEN"

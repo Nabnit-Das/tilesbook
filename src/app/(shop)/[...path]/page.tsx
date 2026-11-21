@@ -1,0 +1,2 @@
+import Workspace from '@/features/Workspace';import Settings from '@/components/Settings';import Plans from '@/components/Plans';import {notFound} from 'next/navigation';import {navRoutes} from '@/lib/nav';
+export default async function Page({params}:{params:Promise<{path:string[]}>}){const {path}=await params;const slug=path.join('/');if(slug==='settings')return <Settings/>;if(slug==='plans')return <Plans/>;if(!navRoutes.some(s=>s.slug===slug))notFound();return <Workspace slug={slug}/>;}

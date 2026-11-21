@@ -1,0 +1,1 @@
+import {localRequest} from '@/server/identity';import Login from '@/components/Login';export const dynamic='force-dynamic';export default async function Page(){return <Login demo={await localRequest()} email={process.env.ENABLE_DEV_EMAIL_AUTH==='1'}/>;}

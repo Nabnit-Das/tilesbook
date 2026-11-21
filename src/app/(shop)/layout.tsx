@@ -1,0 +1,3 @@
+import {redirect} from 'next/navigation';import {identity} from '@/server/identity';import {BookProvider} from '@/components/BookProvider';import Shell from '@/components/Shell';
+export const dynamic='force-dynamic';
+export default async function ShopLayout({children}:{children:React.ReactNode}){let id;try{id=(await identity()).id;}catch{redirect('/login');}return <BookProvider userId={id}><Shell>{children}</Shell></BookProvider>;}

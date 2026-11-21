@@ -1,0 +1,2 @@
+import tseslint from 'typescript-eslint';
+export default [...tseslint.configs.recommended, {ignores:['.next/**','node_modules/**','next-env.d.ts','playwright-report/**','test-results/**','public/sw.js','src/types/generated.ts']},{rules:{'@typescript-eslint/no-unused-vars':['error',{argsIgnorePattern:'^_',varsIgnorePattern:'^_',caughtErrorsIgnorePattern:'^_'}]}}];

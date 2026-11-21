@@ -1,0 +1,5 @@
+'use client';
+import {useState} from 'react';import {useTranslations} from 'next-intl';import {useBook} from '@/lib/client';
+export default function NewFirm(){const {switchBusiness}=useBook(),t=useTranslations();const [open,setOpen]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ if(!open)return <button className="btn" onClick={()=>setOpen(true)}>{t('newFirm')}</button>;
+ return <form className="new-firm" onSubmit={async e=>{e.preventDefault();const input=Object.fromEntries(new FormData(e.currentTarget));setBusy(true);try{const r=await fetch('/api/firms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)});const body=await r.json();if(!r.ok)throw Error(body.error);switchBusiness(body.id);location.assign('/');}catch(e){setError(e instanceof Error?e.message:String(e));}finally{setBusy(false);}}}>{['name','state','address'].map(k=><label key={k}>{t('firm_'+k)}<input name={k} required={k!=='address'} maxLength={200}/></label>)}<button className="btn primary" disabled={busy}>{t('newFirm')}</button>{error&&<p role="alert">{error}</p>}</form>;}

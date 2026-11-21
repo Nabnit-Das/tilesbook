@@ -1,0 +1,1 @@
+import {exec} from './cli.mjs';for(const step of ['lint','typecheck','test','db:test','build','e2e'])exec('npm',['run',step]);

@@ -1,0 +1,15 @@
+import {House,ContactRound,Layers3,ReceiptText,ShoppingBag,Sprout,Landmark,ChartNoAxesCombined,CloudUpload,Wrench,Settings2,Crown} from 'lucide-react';
+export const navGroups=[
+{key:'home',icon:House,routes:[{"slug":"","label":"nav_home"}]},
+{key:'parties',icon:ContactRound,routes:[{"slug":"parties","label":"nav_parties"},{"slug":"receivables","label":"nav_receivables"},{"slug":"whatsapp","label":"nav_whatsapp"}]},
+{key:'items',icon:Layers3,routes:[{"slug":"price-lists","label":"nav_price-lists"},{"slug":"categories","label":"nav_categories"},{"slug":"services","label":"nav_services"},{"slug":"lots","label":"nav_lots"},{"slug":"items","label":"nav_items"},{"slug":"calculator","label":"nav_calculator"},{"slug":"damage","label":"nav_damage"},{"slug":"display","label":"nav_display"},{"slug":"slabs","label":"nav_slabs"},{"slug":"transfers","label":"nav_transfers"},{"slug":"stock-count","label":"nav_stock-count"}]},
+{key:'sale',icon:ReceiptText,routes:[{"slug":"invoices","label":"nav_invoices"},{"slug":"estimates","label":"nav_estimates"},{"slug":"proforma","label":"nav_proforma"},{"slug":"payment-in","label":"nav_payment-in"},{"slug":"orders","label":"nav_orders"},{"slug":"challans","label":"nav_challans"},{"slug":"credit-notes","label":"nav_credit-notes"},{"slug":"pos","label":"nav_pos"}]},
+{key:'purchase',icon:ShoppingBag,routes:[{"slug":"purchases","label":"nav_purchases"},{"slug":"payment-out","label":"nav_payment-out"},{"slug":"expenses","label":"nav_expenses"},{"slug":"purchase-orders","label":"nav_purchase-orders"},{"slug":"debit-notes","label":"nav_debit-notes"}]},
+{key:'grow',icon:Sprout,routes:[{"slug":"reminder-register","label":"nav_reminder-register"},{"slug":"complaints","label":"nav_complaints"},{"slug":"commission-payments","label":"nav_commission-payments"},{"slug":"partners","label":"nav_partners"},{"slug":"follow-ups","label":"nav_follow-ups"},{"slug":"offers","label":"nav_offers"},{"slug":"campaigns","label":"nav_campaigns"}]},
+{key:'money',icon:Landmark,routes:[{"slug":"bank-reconciliation","label":"nav_bank-reconciliation"},{"slug":"cash-closing","label":"nav_cash-closing"},{"slug":"cash-adjustments","label":"nav_cash-adjustments"},{"slug":"staff-advances","label":"nav_staff-advances"},{"slug":"banks","label":"nav_banks"},{"slug":"cash","label":"nav_cash"},{"slug":"cheques","label":"nav_cheques"},{"slug":"loans","label":"nav_loans"}]},
+{key:'reports',icon:ChartNoAxesCombined,routes:[{"slug":"reports","label":"nav_reports"}]},
+{key:'sync',icon:CloudUpload,routes:[{"slug":"approvals","label":"nav_approvals"},{"slug":"attendance","label":"nav_attendance"},{"slug":"branches","label":"nav_branches"},{"slug":"users","label":"nav_users"},{"slug":"backup","label":"nav_backup"},{"slug":"audit","label":"nav_audit"}]},
+{key:'utilities',icon:Wrench,routes:[{"slug":"utilities","label":"nav_utilities"}]},
+{key:'settings',icon:Settings2,routes:[{"slug":"settings","label":"nav_settings"}]},
+{key:'plans',icon:Crown,routes:[{"slug":"plans","label":"nav_plans"}]}
+];export const navRoutes=navGroups.flatMap(g=>g.routes);
