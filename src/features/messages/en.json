@@ -490,5 +490,13 @@
   "contactHelp": "Choose contacts on a supported phone or upload a vCard (.vcf) file.",
   "contactFallback": "Choose a vCard file on this device.",
   "chooseFileGeneric": "Choose file",
-  "noNewRecords": "No new master records to import."
+  "noNewRecords": "No new master records to import.",
+  "findParty": "Find party",
+  "partySearchHint": "Search by name or phone",
+  "uploadBill": "Attach purchase bill photo",
+  "attached": "Bill photo attached",
+  "upgradePro": "Upgrade to Pro to add new entries",
+  "closeYear": "Close financial year",
+  "slabWorkshop": "Reserve or cut a slab",
+  "statementImport": "Import bank statement"
 }
