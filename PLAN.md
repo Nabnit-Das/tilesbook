@@ -58,3 +58,12 @@ This is the implementation and acceptance checklist. Checked entries in the fina
 - [ ] Playwright login to PDF/export, every-route desktop/mobile smoke, offline sync, axe, Lighthouse, production dependency audit and clean build. **Partial or externally unverified. See SUMMARY.md and STATUS.md.**
 - [ ] Milestone install/lint/typecheck/test/build and commits, final verify output, README, assumptions, deployment and honest per-screen scope/status. **Partial or externally unverified. See SUMMARY.md and STATUS.md.**
 - [x] Board 1 mapping from written inventory. Board 2 A–V mapping: GST/thermal; estimate; proforma; payment-in; challan; credit note; PO; debit note; out/expense; banks/cheques; loans; POS; add item; damage; display; slabs; partners; WhatsApp/portal; transfer/count; GST/P&L; plans; utilities.
+
+## Release checkpoint
+
+- [x] Restore a confirmed, unmodified exported v2 accounting checkpoint into its original tenant, even after its archive payload is removed.
+- [x] Test Code 39 encoding, cash voucher export, portal link expiry and original-sale cost reversals.
+- [x] Expose the server-enforced credit-limit block in Settings and respect the credit warning preference.
+- [x] Complete Windows clean dependency install without a filesystem preload and finish the five-case production Playwright run with successful teardown.
+- [ ] Run Storage metadata visibility tests and the full pgTAP suite against Docker Supabase. Verify hosted OTP, Storage transfers and deployment in a designated staging project.
+- [ ] Validate voucher compatibility in a real Tally company and print/scan physical labels. Voucher imports, consolidated reports and outstanding product gaps remain listed in SUMMARY.md.

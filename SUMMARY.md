@@ -10,7 +10,7 @@ Done denotes an implemented workflow. Stub denotes a partial implementation or a
 | Board 1 products, services, categories and lots; Board 2 M | Done | Item fields, barcodes, prices, conversion factors, opening lots, shades, stock ledger and low-stock thresholds |
 | Board 1 sale invoices/Add Sale | Done | Item/lot selection, converter, line/bill discounts, GST, credit warning, approval, received amount, print/share |
 | Board 1 purchase bills and cash/bank | Done | Purchase posting, allocation of landed cost, evidence attachment, payments, balances and cash adjustments |
-| Board 1 settings and plans; Board 2 U | Stub | Ten settings tabs, device passcode, Simple Mode, language, printing, trial and premium gates. Some switches only save preferences. Billing checkout is a preview; accounting runs in INR. |
+| Board 1 settings and plans; Board 2 U | Stub | Ten settings tabs, device passcode, Simple Mode, language, printing, trial and premium gates. Sales now respect the credit-warning switch and expose the existing server-side credit-limit block. Some other switches only save preferences. Billing checkout is a preview; accounting runs in INR. |
 | Board 2 A | Done | A4, A5 and 80 mm documents, localised headings, HSN, tax split, Indian words, original/copy labels, round-off, balance, bank/UPI QR, terms and signature |
 | Statutory IRN, signed QR and e-way bill | Stub | Fields, placeholders and provider interfaces; no statutory submission |
 | Board 2 B–C | Done | Room and mixed-unit quotations, proforma, document conversion |
@@ -25,8 +25,10 @@ Done denotes an implemented workflow. Stub denotes a partial implementation or a
 | Board 2 T and report menu | Stub | Transaction, party, item, GST, tax, expense, orders, bank, loan and all ten tile/marble report groups. P&L, trial balance and balance sheet use derived journal entries. GST/TDS/TCS are review worksheets. SAC is a service master listing. Item/party profitability uses estimated costs. |
 | Standard report actions | Done | Date and user scope, active firm, selected-column search, Excel, print and PDF. Consolidated multi-firm reporting is unavailable. |
 | Board 2 V | Done | Excel item/party imports, contact picker/vCard, sample item library, bulk edits, lot QR, Tally master XML exchange, exports, verification, onboarding, accountant access and financial-year close |
-| Tally vouchers and linear barcode label printing | Not done | Tally integration covers stock and party masters. QR lot labels, scanner lookup and the salesperson totals report work. |
-| Users, audit and backups | Stub | Five roles, memberships, audit toggle, daily pre-write archives, local JSON download, checkpoint restore and configurable help-video links. Drive upload, bundled help videos and restoring an arbitrary downloaded JSON file are unavailable. |
+| Cash voucher XML export | Done | Receipt and Payment exports use the Cash ledger, party ledger and linked bill reference. Validate with the target Tally company before import. |
+| Tally voucher import and other voucher exports | Not done | Stock and party master exchange remains available. |
+| Linear lot labels | Done | Code 39 print action for supported lot numbers, plus existing QR labels and scanner lookup. Hardware acceptance remains pending. |
+| Users, audit and backups | Stub | Five roles, memberships, audit toggle, daily pre-write archives, owner file export, confirmed same-firm v2 file recovery, checkpoint restore and configurable help-video links. Drive upload and bundled help videos are unavailable. Restore requires the original database proof. |
 | Additional staff and counter features | Done | Day closing records, attendance, staff advances, complaints, special prices, high-discount approval, printable/shareable design gallery |
 | Offline/mobile | Done | Installable manifest and service worker, IndexedDB queues for billing/payment/stock, authenticated replay, idempotent operations, speech/manual fallback and camera/file inputs |
 | Data and seed | Done | PostgreSQL migrations, private storage policy definitions, Supabase client types, tenant-scoped RPC, atomic ledger posting and realistic Bhubaneswar demo records |

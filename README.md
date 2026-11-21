@@ -80,3 +80,9 @@ The included 18% and 5% rates are editable sample defaults. Have a chartered acc
 | `.github/workflows`              | CI, database rebuild, security and manually triggered deployment                    |
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for hosted setup and [GITHUB_SETUP.md](GITHUB_SETUP.md) for repository publication.
+
+## Restoring a shop checkpoint
+
+In Backups, the owner can download a v2 JSON file and select it for a confirmed restore to the same shop. Restore verifies the file against the database's export digest, serializes writes for the shop and saves a rollback point. Keep exports private. They contain customer and financial data. The 20 MB limit applies to the accounting snapshot. Back up Storage objects separately. Losing the database and its proof register requires infrastructure-level recovery.
+
+Utilities supports printable Code 39 lot numbers using uppercase letters, digits and standard Code 39 punctuation. Use QR for other lot numbers. The Tally cash voucher export covers cash receipts and cash payments. Import party masters and referenced bills into a test company first and reconcile voucher counts, debit/credit totals and bill references before posting to a live ledger. Bank, UPI, cheque and inventory vouchers are outside this export. [Tally XML reference](https://help.tallysolutions.com/sample-xml/)

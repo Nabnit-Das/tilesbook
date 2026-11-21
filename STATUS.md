@@ -31,3 +31,17 @@ Feature and reference-screen statuses are maintained in SUMMARY.md. The initial 
 The clean production run passed the billing-to-PDF/Excel journey and the four-screen accessibility audit. Its desktop and mobile smoke checks identified a missing heading on the item library. The final production build passed after adding that heading. The targeted desktop and mobile checks then passed across every sidebar route in 2.9 minutes. The Windows test harness stalled during teardown of the initial five-case run and was interrupted after the individual cases reported their results.
 
 Two additional targeted regression tests passed for public catalogue fields, photo isolation, signed stock movements and salesperson totals. Together with the 63-test clean run, 65 distinct Vitest tests were observed passing. The full Supabase verification command still requires Docker.
+
+## Release verification on 21 November 2026
+
+| Check | Observed result |
+| --- | --- |
+| Fresh Git clone from a local bundle, npm ci with the local npm cache | Passed on Windows, 617 packages installed without the earlier filesystem preload. No dependency changes between checkout and final build. |
+| npm run lint, npm run typecheck, npm test, npm run build | All passed in the clean checkout at eb36a88. Vitest reported 70 tests in 12 files. The production build used no cloud credentials or filesystem preload. |
+| npm run e2e | Five passed in 3.5 minutes on the local production demo. Billing, PDF, payment, Excel, offline replay, mobile and desktop routes, and the axe scan passed. The new server teardown returned exit code 0. |
+| npm run e2e -- e2e/checkpoint.spec.ts | One additional test passed in the clean production checkout. An owner downloaded a private v2 checkpoint. The counter was denied. The production server started and exited normally. |
+| Targeted backup and financial checks | Confirmed same-tenant file recovery from a deleted archive row, rejection of changed files and missing/null confirmation, original-sale return cost and trial balance opening balances. Fixtures were isolated. |
+| npm audit --omit=dev --audit-level=high | Zero high, zero critical, two moderate. |
+| Docker Supabase and hosted services | The full verify gate retains its previously recorded failure at db:test. Docker and gh are absent. No repeat reset or full verify was run. Storage policy tests now check object visibility and foreign-prefix writes. These assertions await Docker. No remote CI or staging deployment ran. |
+
+For the outstanding gate, start Docker, use a disposable local installation, run `npm run setup`, then in PowerShell run `$env:TEST_SUPABASE='1'` and `npm run verify`. The connector can identify the signed-in GitHub user, but this checkout has no remote. Use GITHUB_SETUP.md to publish with its commit history. No hosted Supabase project was identified as the TileBook staging target.
