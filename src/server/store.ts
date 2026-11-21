@@ -10,7 +10,7 @@ type Operation =
   | "tilebook_snapshot"
   | "tilebook_mutate"
   | "tilebook_new_business"
-  | "tilebook_prepare_messages";
+  | "tilebook_prepare_messages" | "tilebook_backup_file";
 export type {
   Row,
   Json,
@@ -150,3 +150,5 @@ export async function mutate(input: unknown): Promise<MutationResult> {
     p_request_id: v.requestId ?? randomUUID(),
   })) as unknown as MutationResult;
 }
+
+export function backupFile(businessId:string,file?:string){return invoke("tilebook_backup_file",{p_business_id:businessId,p_confirm:file!==undefined,...(file===undefined?{}:{p_file:file})});}

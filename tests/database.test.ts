@@ -483,7 +483,13 @@ describe.sequential(
       expect(portal?.documents.every((d) => !("purchasePrice" in d))).toBe(
         true,
       );
-      await post("portalLinks", { partyId: party });
+      const replacement = await post("portalLinks", { partyId: party });
+      const allowedIds = new Set(
+        Object.values((await snapshot()).records).flat().filter(r => r.partyId === party).map(r => r.id),
+      );
+      expect(portal?.documents.every(r => allowedIds.has(r.id))).toBe(true);
+      await db.query("update public.portal_links set payload=jsonb_set(payload,'{expiresAt}',to_jsonb(now()-interval '1 minute')) where id=$1", [replacement.id]);
+      expect(await loadPortal(replacement.token)).toBeNull();
       expect(await loadPortal(link.token)).toBeNull();
       const archive = await post("backups", { name: "Before edits" });
       const req = randomUUID(),

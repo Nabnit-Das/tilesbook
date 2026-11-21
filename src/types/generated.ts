@@ -1108,6 +1108,9 @@ isOneToOne: false
             "tilebook_accept_invites":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"tilebook_backup_file":
+{ Args: { "p_business_id": string,"p_confirm"?: boolean,"p_file"?: string }; Returns: string
+                           },
 "tilebook_can_access_file":
 { Args: { "bucket": string,"folder": string,"writing": boolean }; Returns: boolean
                            },

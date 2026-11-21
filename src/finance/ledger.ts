@@ -29,9 +29,11 @@ export function journal(book:Snapshot):Entry[]{
   if(m.kind==='Opening')post(m,'inventoryValue','capital',n(m,'physical')*(productCosts.get(str(m,'productId'))??0));
   if(m.kind==='stockCounts')post(m,'inventoryValue','stockVariance',n(m,'physical')*cost(m,dateOf(m)));
  }
+ const invoiceDates = new Map(rows('saleInvoices').map(invoice => [invoice.id, dateOf(invoice)]));
  for(const [resource,sign] of [['saleInvoices',1],['creditNotes',-1]] as const){
   for(const r of rows(resource)){post(r,'receivableControl','salesRevenue',sign*n(r,'taxable'));post(r,'receivableControl','outputGst',sign*n(r,'tax'));post(r,'receivableControl','rounding',sign*n(r,'roundOff'));
-   for(const line of lines(r))post(r,'costOfSales','inventoryValue',sign*(n(line,'baseQty')||n(line,'qty'))*cost(line,dateOf(r)));
+   const valuationDate = resource === 'creditNotes' ? invoiceDates.get(str(r,'sourceId')) ?? dateOf(r) : dateOf(r);
+   for(const line of lines(r))post(r,'costOfSales','inventoryValue',sign*(n(line,'baseQty')||n(line,'qty'))*cost(line,valuationDate));
   }
  }
  for(const [resource,sign] of [['purchaseBills',1],['debitNotes',-1]] as const){
@@ -54,7 +56,7 @@ export function journal(book:Snapshot):Entry[]{
 }
 export function statements(book:Snapshot,view:string,scope:{start:string;end:string;user:string}){
  const accounts=new Map<string,number>();
- for(const e of journal(book)){if((scope.end&&e.date>scope.end)||(scope.user&&scope.user!==e.actor)||(view!=='balance-sheet'&&scope.start&&e.date<scope.start))continue;
+ for(const e of journal(book)){if((scope.end&&e.date>scope.end)||(scope.user&&scope.user!==e.actor)||(view==='profit-loss'&&scope.start&&e.date<scope.start))continue;
  accounts.set(e.account,(accounts.get(e.account)??0)+e.paise);}
  const entries=[...accounts].filter(([,amount])=>amount!==0);
  if(view==='trial-balance')return {columns:['metric','debitPaise','creditPaise'],rows:entries.map(([k,v])=>({id:k,metric:k,debitPaise:Math.max(v,0),creditPaise:Math.max(-v,0)})),note:'valuationNote'};

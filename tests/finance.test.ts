@@ -11,4 +11,18 @@ it('reconciles billed GST, receipt, stock consumption and retained earnings',()=
  expect(balance.find(v=>v.id==='receivableControl')).toMatchObject({amount:7800});
  expect(balance.find(v=>v.id==='outputGst')).toMatchObject({amount:1800});
  expect(statements(book,'trial-balance',{...scope,end:'2026-11-18'}).rows).toEqual([]);
+});it('carries openings into the trial balance and reverses returns at the original sale valuation', () => {
+  const lot = {productId:'tile', lotId:'lot', qty:1};
+  const book:Snapshot = {business:{id:'b'},userId:'u',role:'Owner',records:{
+    banks:[{id:'bank',date:'2026-01-01',openingBalance:50000}],
+    purchaseBills:[{id:'p1',date:'2026-01-01',lines:[{...lot,id:'a',landedCost:3000}]},
+      {id:'p2',date:'2026-03-01',lines:[{...lot,id:'b',landedCost:6000}]}],
+    saleInvoices:[{id:'invoice',date:'2026-02-01',lines:[{...lot,id:'s'}]}],
+    creditNotes:[{id:'return',sourceId:'invoice',date:'2026-04-01',lines:[{...lot,id:'r'}]}]
+  }};
+  const scope={start:'2026-04-01',end:'2026-04-30',user:''};
+  const trial=statements(book,'trial-balance',scope).rows;
+  expect(trial.find(r=>r.id==='cashAtBank')).toMatchObject({debitPaise:50000});
+  expect(trial.find(r=>r.id==='costOfSales')).toBeUndefined();
+  expect(statements(book,'profit-loss',scope).rows.find(r=>r.id==='costOfSales')).toMatchObject({net:3000});
 });

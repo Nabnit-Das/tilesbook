@@ -1,5 +1,6 @@
 "use client";
 import MessageQueue from "./MessageQueue";
+import {barcodeSvg} from "./linear-label";
 import MasterExchange from "./MasterExchange";
 import Link from "next/link";
 import Image from "next/image";
@@ -228,25 +229,11 @@ export default function Tools({
     }
     setReport(problems.length ? problems : [t("verificationOk")]);
   };
-  const backup = () =>
-    download(
-      new Blob(
-        [
-          JSON.stringify(
-            {
-              format: "tilebook-export-v1",
-              exportedAt: new Date().toISOString(),
-              business: book.business,
-              records: book.records,
-            },
-            null,
-            2,
-          ),
-        ],
-        { type: "application/json" },
-      ),
-      "TileBook-" + today() + ".json",
-    );
+  const [selectedFile,selectFile]=useState<File|null>(null);
+ const transferFile=async(restoreFile?:File)=>{if(restoreFile&&restoreFile.size>20000000)throw Error(t('badImport'));
+ const response=await fetch('/api/backups/file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(restoreFile?{action:'restore',businessId:book.business.id,file:await restoreFile.text(),confirm:true}:{action:'export',businessId:book.business.id})});if(!response.ok)throw Error((await response.json()).error);
+ if(!restoreFile)download(await response.blob(),'TileBook-'+today()+'.json');selectFile(null);await api.refresh();say(t('saved'));};
+ const linear=barcodeSvg(str(lots.find(l=>l.id===lot),'lotNo'));
   return (
     <>
       <div className="tb-pagehead">
@@ -385,7 +372,7 @@ export default function Tools({
                   <QrCode size={16} />
                   {t("generate")}
                 </button>
-                {qr && (
+                {linear&&<button className="tb-outline" onClick={()=>{const win=window.open('','_blank');if(win){win.opener=null;win.document.write(linear);win.document.close();win.print();}}}>{t("print")} · Code 39</button>}{qr && (
                   <div className="tb-qr">
                     <Image
                       unoptimized
@@ -529,10 +516,10 @@ export default function Tools({
                 >
                   {t("createBackup")}
                 </button>
-                <button className="tb-outline" onClick={backup}>
+                <button className="tb-outline" onClick={()=>safe(()=>transferFile())}>
                   <Download size={16} />
                   {t("downloadBackup")}
-                </button>
+                </button><label>{t("restore")}<input type="file" accept=".json" onChange={e=>selectFile(e.target.files?.[0]||null)}/></label>{selectedFile&&<section><p>{t("restoreConfirm")} · {selectedFile.name}</p><button disabled={busy} onClick={()=>safe(()=>transferFile(selectedFile))}>{t("confirmRestore")}</button><button onClick={()=>selectFile(null)}>{t("cancel")}</button></section>}
               </div>
             </section>
             <section className="tb-panel tb-toolbody">
