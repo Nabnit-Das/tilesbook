@@ -899,6 +899,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"slab_events": {
+                  Row: {
+                    "business_id": string,"created_at": string,"id": string,"payload": NonNullable<Json>,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "business_id": string,"created_at"?: string,"id"?: string,"payload": NonNullable<Json>,"updated_at"?: string
+                  }
+                  Update: {
+                    "business_id"?: string,"created_at"?: string,"id"?: string,"payload"?: NonNullable<Json>,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "slab_events_business_id_fkey"
+      columns: ["business_id"]
+isOneToOne: false
+      referencedRelation: "businesses"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"slabs": {
                   Row: {
                     "business_id": string,"created_at": string,"id": string,"payload": NonNullable<Json>,"updated_at": string
@@ -1059,6 +1079,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"year_closures": {
+                  Row: {
+                    "business_id": string,"created_at": string,"id": string,"payload": NonNullable<Json>,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "business_id": string,"created_at"?: string,"id"?: string,"payload": NonNullable<Json>,"updated_at"?: string
+                  }
+                  Update: {
+                    "business_id"?: string,"created_at"?: string,"id"?: string,"payload"?: NonNullable<Json>,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "year_closures_business_id_fkey"
+      columns: ["business_id"]
+isOneToOne: false
+      referencedRelation: "businesses"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -1082,6 +1122,9 @@ isOneToOne: false
                            },
 "tilebook_portal":
 { Args: { "p_token": string }; Returns: Json
+                           },
+"tilebook_prepare_messages":
+{ Args: { "p_business_id": string }; Returns: Json
                            },
 "tilebook_snapshot":
 { Args: { "p_business_id"?: string }; Returns: Json

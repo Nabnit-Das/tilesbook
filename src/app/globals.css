@@ -16,3 +16,5 @@
 @media(max-width:700px){.mobilebar a{min-width:47px}.kpi>small{font-size:.8rem}.kpi-top{font-size:.88rem}.action{font-size:1rem}.side-nav a,.side-nav button{font-size:1rem}}
 
 .business-tools,.pin-pref{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:15px;margin-top:14px}.business-tools a,.business-tools button,.pin-pref label{display:flex;align-items:center;gap:8px;font-size:.88rem}.business-tools a{margin-right:auto;color:var(--teal)}.pin-lock{min-height:100vh;display:grid;place-items:center}.pin-lock form{width:min(360px,92vw);display:grid;gap:16px;padding:24px}.pin-lock h1{font-size:1.5rem}.pin-lock label{display:grid;gap:8px}.pin-lock input,.pin-pref input{padding:8px}.pin-pref{padding-inline:0;border-bottom:1px solid var(--line)}
+.outbox-row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--line)}.outbox-row b,.outbox-row small{display:block}.outbox-row small{color:#4b596b}.outbox-row p{font-size:.9rem;max-width:65ch}
+.shop-help>div,.support-phone{display:flex;align-items:center;gap:6px}.shop-help>div:not(:empty){margin:12px 0}.support-phone{color:var(--teal)}

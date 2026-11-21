@@ -1,0 +1,6 @@
+'use client';
+import {useTranslations} from 'next-intl';import {Phone,Video} from 'lucide-react';import {useBook} from '@/lib/client';
+export function SupportPhone(){const {book}=useBook(),t=useTranslations();const prefs=book?.records.settings?.find(s=>s.key==='preferences')?.value as Record<string,unknown>|undefined;const phone=String(prefs?.supportPhone||'');return /^[+\d][\d() -]{5,19}$/.test(phone)?<a aria-label={t('support')+' '+phone} className="support-phone" href={'tel:'+phone.replace(/[^\d+]/g,'')}><Phone size={13}/>{phone}</a>:null;}
+export function ShopHelp(){const {book}=useBook(),t=useTranslations();const prefs=book?.records.settings?.find(s=>s.key==='preferences')?.value as Record<string,unknown>|undefined;
+ return <section className="shop-help"><p>{t('helpText')}</p><div>{['En','Hi','Or'].map((k,i)=>{const u=String(prefs?.['helpVideo'+k]||'');return /^https:\/\//i.test(u)?<a className="btn" href={u} key={k} target="_blank" rel="noreferrer"><Video size={15}/>{['English','हिन्दी','ଓଡ଼ିଆ'][i]}</a>:null;})}</div><SupportPhone/></section>;
+}

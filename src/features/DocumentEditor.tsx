@@ -294,6 +294,7 @@ export default function DocumentEditor({
     [action, setAction] = useState("save"),
     [billDiscount, setBillDiscount] = useState(""),
     [billNo, setBillNo] = useState(""),
+    [tds,setTds]=useState(""),[tcs,setTcs]=useState(""),
     [eway, setEway] = useState(""),
     [vehicle, setVehicle] = useState(""),
     [unopened, setUnopened] = useState(true);
@@ -493,6 +494,7 @@ export default function DocumentEditor({
               vehicleNo: vehicle,
               unopened,
               billDiscount: billPaise,
+              tds:Math.round(Number(tds)*100),tcs:Math.round(Number(tcs)*100),
               sourceId: sourceId || undefined,
               placeOfSupply: place,
               dueDate: due || undefined,
@@ -932,7 +934,9 @@ export default function DocumentEditor({
                 onChange={(e) => setBillNo(e.target.value)}
               />
             </label>
-            <label>
+            <label>{t("tds")} (₹)<input type="number" min="0" step=".01" value={tds} onChange={e=>setTds(e.target.value)}/></label>
+<label>{t("tcs")} (₹)<input type="number" min="0" step=".01" value={tcs} onChange={e=>setTcs(e.target.value)}/></label>
+<label>
               {t("vehicleNo")}
               <input
                 value={vehicle}

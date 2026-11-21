@@ -7,7 +7,10 @@ import type { Json, MutationResult, Snapshot } from "../types/database";
 import type { Database } from "../types/generated";
 type Functions = Database["public"]["Functions"];
 type Operation =
-  "tilebook_snapshot" | "tilebook_mutate" | "tilebook_new_business";
+  | "tilebook_snapshot"
+  | "tilebook_mutate"
+  | "tilebook_new_business"
+  | "tilebook_prepare_messages";
 export type {
   Row,
   Json,
@@ -114,6 +117,21 @@ export function newBusiness(input: unknown): Promise<string> {
     p_state: value.state,
     p_address: value.address,
   });
+}
+export async function prepareMessages(input: unknown) {
+  const { businessId } = z
+    .object({ businessId: z.uuid() })
+    .strict()
+    .parse(input);
+  const value = await invoke("tilebook_prepare_messages", {
+    p_business_id: businessId,
+  });
+  return z
+    .object({
+      queued: z.number().int().nonnegative(),
+      reminders: z.number().int().nonnegative(),
+    })
+    .parse(value);
 }
 export async function getSnapshot(businessId?: string): Promise<Snapshot> {
   const params = businessId

@@ -387,29 +387,85 @@ describe.sequential(
         "already been claimed",
       );
     });
-    it("expires trials without blocking regular lot-tracked invoices or historical reports",async()=>{
-      const trial=await snapshot();
-      expect(trial.entitlements).toMatchObject({plan:"trial",premium:true});
-      const sub=trial.records.subscriptions[0];
-      await post("subscriptions",{id:sub.id,plan:"trial",trialEnds:"2020-01-01"},{action:"update"});
-      const basic=await snapshot();
-      expect(basic.entitlements).toMatchObject({plan:"basic",premium:false});
-      expect(basic.records.partners.length).toBeGreaterThan(0);
-      await expect(post("campaigns",{name:"New offer"})).rejects.toThrow("Upgrade to Pro");
-      await expect(post("slabs",{slabNo:"A-9",length:9,width:4})).rejects.toThrow("Upgrade to Pro");
-      await expect(post("partners",{partyId:partner,kind:"percent",rate:2})).rejects.toThrow("Upgrade to Pro");
-      expect((await post("saleInvoices",{partyId:party,lines:[line(1)]})).number).toBeTruthy();
-      await post("subscriptions",{id:sub.id,plan:"pro"},{action:"update"});
-      expect((await post("campaigns",{name:"Clearance"})).name).toBe("Clearance");
+    it("limits purchase bill attachments to owners, managers and read-only accountants", async () => {
+      const access: [string, boolean, boolean][] = [
+        ["Owner", true, true],
+        ["Manager", true, true],
+        ["Accountant", true, false],
+        ["Godown", false, false],
+        ["Counter", false, false],
+      ];
+      await db.transaction(async (tx) => {
+        await tx.query("select set_config('request.jwt.claim.sub',$1,true)", [
+          counter,
+        ]);
+        for (const [role, read, write] of access) {
+          await tx.query(
+            "update public.memberships set role=$1 where user_id=$2 and business_id=$3",
+            [role, counter, shop],
+          );
+          const { rows } = await tx.query(
+            "select tilebook_can_access_file($1,'purchase-bills',false) as read, tilebook_can_access_file($1,'purchase-bills',true) as write, tilebook_can_access_file($2,'purchase-bills',false) as foreign_read",
+            [shop, foreignShop],
+          );
+          expect(rows[0]).toEqual({ read, write, foreign_read: false });
+        }
+      });
     });
-    it("takes one restorable pre-write automatic archive per occupied IST day",async()=>{
-      await post("settings",{key:"preferences",value:{autoBackup:true}});
-      const first=await post("parties",{name:"First daily change"});
-      await post("parties",{name:"Second daily change"});
-      const archives=(await snapshot()).records.backups.filter(x=>x.kind==="automatic");
+    it("expires trials without blocking regular lot-tracked invoices or historical reports", async () => {
+      const trial = await snapshot();
+      expect(trial.entitlements).toMatchObject({
+        plan: "trial",
+        premium: true,
+      });
+      const sub = trial.records.subscriptions[0];
+      await post(
+        "subscriptions",
+        { id: sub.id, plan: "trial", trialEnds: "2020-01-01" },
+        { action: "update" },
+      );
+      const basic = await snapshot();
+      expect(basic.entitlements).toMatchObject({
+        plan: "basic",
+        premium: false,
+      });
+      expect(basic.records.partners.length).toBeGreaterThan(0);
+      await expect(post("campaigns", { name: "New offer" })).rejects.toThrow(
+        "Upgrade to Pro",
+      );
+      await expect(
+        post("slabs", { slabNo: "A-9", length: 9, width: 4 }),
+      ).rejects.toThrow("Upgrade to Pro");
+      await expect(
+        post("partners", { partyId: partner, kind: "percent", rate: 2 }),
+      ).rejects.toThrow("Upgrade to Pro");
+      const buyer = await post("parties", { name: "Basic plan walk-in" });
+      const sale = await post("saleInvoices", { partyId: buyer.id, lines: [line(1)] });
+      expect(sale.number).toBeTruthy();
+      await post(
+        "subscriptions",
+        { id: sub.id, plan: "pro" },
+        { action: "update" },
+      );
+      expect((await post("campaigns", { name: "Clearance" })).name).toBe(
+        "Clearance",
+      );
+    });
+    it("takes one restorable pre-write automatic archive per occupied IST day", async () => {
+      await post("settings", {
+        key: "preferences",
+        value: { autoBackup: true },
+      });
+      const first = await post("parties", { name: "First daily change" });
+      await post("parties", { name: "Second daily change" });
+      const archives = (await snapshot()).records.backups.filter(
+        (x) => x.kind === "automatic",
+      );
       expect(archives).toHaveLength(1);
-      await post("backups",{id:archives[0].id},{action:"restore"});
-      expect((await snapshot()).records.parties.some(x=>x.id===first.id)).toBe(false);
+      await post("backups", { id: archives[0].id }, { action: "restore" });
+      expect(
+        (await snapshot()).records.parties.some((x) => x.id === first.id),
+      ).toBe(false);
     });
     it("shares one party through an expiring token, revokes replaced links and restores a private archive", async () => {
       const link = await post("portalLinks", { partyId: party });

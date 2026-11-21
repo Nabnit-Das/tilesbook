@@ -1,4 +1,5 @@
 "use client";
+import MessageQueue from "./MessageQueue";
 import MasterExchange from "./MasterExchange";
 import Link from "next/link";
 import Image from "next/image";
@@ -584,6 +585,7 @@ export default function Tools({
             </section>
           </>
         ))}
+      {slug === "whatsapp" && <MessageQueue/>}
       {slug === "whatsapp" && (
         <>
           <section className="tb-panel tb-toolbody">
