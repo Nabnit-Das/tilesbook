@@ -15,7 +15,11 @@ export interface Business {
   [key: string]: Json;
 }
 export interface Snapshot {
-  entitlements: { plan: "trial" | "pro" | "basic"; premium: boolean; trialEnds: string };
+  entitlements: {
+    plan: "trial" | "pro" | "basic";
+    premium: boolean;
+    trialEnds: string;
+  };
   business: Business;
   businesses: { id: string; name: string; role: Role }[];
   role: Role;
