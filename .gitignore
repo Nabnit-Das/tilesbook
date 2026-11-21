@@ -1,9 +1,0 @@
-node_modules/
-.next/
-.env
-*.tsbuildinfo
-next-env.d.ts
-work/
-outputs/
-playwright-report/
-test-results/
