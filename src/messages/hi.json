@@ -205,6 +205,7 @@
   "blockRate": "कच्चा मार्बल GST (%)",
   "confirmDelivery": "डिलीवरी सूचनाएँ",
   "invoiceMessage": "बिल सहेजने पर संदेश",
+  "blockCreditLimit": "क्रेडिट सीमा से अधिक की बिक्री रोकें",
   "creditWarnings": "उधार सीमा चेतावनी",
   "dueDays": "भुगतान से पहले अनुस्मारक (दिन)",
   "currency": "मुद्रा",

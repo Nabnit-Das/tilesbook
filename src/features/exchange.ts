@@ -126,3 +126,69 @@ export function readVcard(input: string): Master[] {
         : [];
     });
 }
+export function cashVoucherXml(payments: Row[], documents: Row[]) {
+  const refs = new Map(documents.map((doc) => [doc.id, str(doc, "number")]));
+  const vouchers = payments
+    .filter((p) => str(p, "mode").toLowerCase() === "cash")
+    .map((p) => {
+      const incoming = p.direction === "in";
+      const amount = Number(p.amount);
+      if (
+        (!incoming && p.direction !== "out") ||
+        !Number.isSafeInteger(amount) ||
+        amount <= 0 ||
+        !str(p, "partyName") ||
+        !/^\d{4}-\d\d-\d\d$/.test(str(p, "date"))
+      )
+        throw Error("Invalid cash voucher");
+      const kind = incoming ? "Receipt" : "Payment";
+      const ref = refs.get(str(p, "documentId"));
+      if (p.documentId && !ref) throw Error("Missing linked bill");
+      function ledger(name: string, debit: boolean, party: boolean) {
+        const value = (debit ? "-" : "") + (amount / 100).toFixed(2);
+        const bill = party
+          ? "<BILLALLOCATIONS.LIST>" +
+            (ref ? "<NAME>" + xml(ref) + "</NAME>" : "") +
+            "<BILLTYPE>" +
+            (ref ? "Agst Ref" : "On Account") +
+            "</BILLTYPE><AMOUNT>" +
+            value +
+            "</AMOUNT></BILLALLOCATIONS.LIST>"
+          : "";
+        return (
+          "<ALLLEDGERENTRIES.LIST><LEDGERNAME>" +
+          xml(name) +
+          "</LEDGERNAME><ISDEEMEDPOSITIVE>" +
+          (debit ? "Yes" : "No") +
+          "</ISDEEMEDPOSITIVE><ISPARTYLEDGER>" +
+          (party ? "Yes" : "No") +
+          "</ISPARTYLEDGER><AMOUNT>" +
+          value +
+          "</AMOUNT>" +
+          bill +
+          "</ALLLEDGERENTRIES.LIST>"
+        );
+      }
+      return (
+        '<TALLYMESSAGE><VOUCHER ACTION="Create" VCHTYPE="' +
+        kind +
+        '" REMOTEID="' +
+        xml(p.id) +
+        '"><DATE>' +
+        str(p, "date").replaceAll("-", "") +
+        "</DATE><VOUCHERTYPENAME>" +
+        kind +
+        "</VOUCHERTYPENAME><VOUCHERNUMBER>" +
+        xml(str(p, "number")) +
+        "</VOUCHERNUMBER><PERSISTEDVIEW>Accounting Voucher View</PERSISTEDVIEW>" +
+        ledger("Cash", incoming, false) +
+        ledger(str(p, "partyName"), !incoming, true) +
+        "</VOUCHER></TALLYMESSAGE>"
+      );
+    });
+  return (
+    "<ENVELOPE><HEADER><TALLYREQUEST>Import Data</TALLYREQUEST></HEADER><BODY><IMPORTDATA><REQUESTDESC><REPORTNAME>Vouchers</REPORTNAME></REQUESTDESC><REQUESTDATA>" +
+    vouchers.join("") +
+    "</REQUESTDATA></IMPORTDATA></BODY></ENVELOPE>"
+  );
+}

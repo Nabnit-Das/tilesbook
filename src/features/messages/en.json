@@ -485,6 +485,7 @@
   "tallyMasters": "Tally master exchange",
   "contactImport": "Import contacts",
   "tallyHelp": "Import stock items and debtor or creditor ledgers from Tally XML. Review prices and GST for new items.",
+  "exportCashVouchers": "Export cash receipt and payment vouchers",
   "exportTally": "Export Tally masters",
   "pickContacts": "Choose phone contacts",
   "contactHelp": "Choose contacts on a supported phone or upload a vCard (.vcf) file.",

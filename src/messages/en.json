@@ -205,6 +205,7 @@
   "blockRate": "Raw marble block GST (%)",
   "confirmDelivery": "Delivery updates",
   "invoiceMessage": "Invoice on save",
+  "blockCreditLimit": "Block sales above the party credit limit",
   "creditWarnings": "Credit limit warnings",
   "dueDays": "Payment reminder lead (days)",
   "currency": "Currency",

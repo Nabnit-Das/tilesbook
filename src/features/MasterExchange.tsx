@@ -6,6 +6,7 @@ import {
   readTallyMasters,
   readVcard,
   tallyMasters,
+  cashVoucherXml,
   type Master,
 } from "./exchange";
 import { canWrite, download, str, type Snapshot } from "./model";
@@ -128,6 +129,30 @@ export default function MasterExchange({
           <button className="tb-outline" onClick={pick}>
             <Users size={16} />
             {t("pickContacts")}
+          </button>
+        )}
+        {tool === "tallyMasters" && (
+          <button
+            className="tb-outline"
+            onClick={() => {
+              try {
+                const docs = [
+                  "saleInvoices",
+                  "purchaseBills",
+                  "saleOrders",
+                ].flatMap((key) => book.records[key] || []);
+                const xml = cashVoucherXml(book.records.payments || [], docs);
+                download(
+                  new Blob([xml], { type: "application/xml" }),
+                  "TileBook-cash-vouchers.xml",
+                );
+              } catch {
+                setMessage(t("badImport"));
+              }
+            }}
+          >
+            <Download size={16} />
+            {t("exportCashVouchers")}
           </button>
         )}
         <label className="tb-filebtn">

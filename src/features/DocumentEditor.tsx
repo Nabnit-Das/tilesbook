@@ -1019,7 +1019,7 @@ export default function DocumentEditor({
             {t("unopenedBoxes")}
           </label>
         )}
-        {overLimit && ["invoices", "pos"].includes(m.slug) && (
+        {(prefs.creditWarnings !== false || prefs.blockCreditLimit === true) && overLimit && ["invoices", "pos"].includes(m.slug) && (
           <p className="tb-warning">
             {t("creditWarning")} · {money(limit, locale)}
           </p>
