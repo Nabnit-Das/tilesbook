@@ -508,7 +508,7 @@ function Working({ slug, book }: { slug: string; book: Snapshot }) {
       );
   };
   if(slug==="design-gallery")return <DesignGallery book={book}/>;
-  if(slug==="item-library")return <ItemLibrary book={book}/>;
+  if(slug==="item-library")return <><div className="tb-pagehead"><h1>{t("libraryItem")}</h1></div><ItemLibrary book={book}/></>;
   if (slug === "calculator")
     return (
       <>
