@@ -13,7 +13,7 @@ import {
 import { useBook } from "@/lib/client";
 import { captureEvidence, readablePhoto } from "@/lib/photo";
 import { useWorkspaceText } from "./i18n";
-import { catalogueItems, productLibrary } from "./showcase";
+import { catalogueItems, productLibrary } from "./catalogue-data";
 import { canWrite, download, money, share, str, type Snapshot } from "./model";
 export function DesignGallery({ book }: { book: Snapshot }) {
   const { locale, t } = useWorkspaceText(),

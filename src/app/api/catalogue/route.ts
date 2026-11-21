@@ -3,7 +3,7 @@ import path from "node:path";
 import { z } from "zod";
 import { getSnapshot } from "@/server/store";
 import { authClient, localRequest } from "@/server/identity";
-import { catalogueItems, cataloguePhoto } from "@/features/showcase";
+import { catalogueItems, cataloguePhoto } from "@/features/catalogue-data";
 import { money, str } from "@/features/model";
 import { printPage } from "@/print/pdf";
 import en from "@/features/messages/en.json";
