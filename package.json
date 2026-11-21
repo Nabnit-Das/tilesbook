@@ -23,7 +23,7 @@
     "demo": "node scripts/demo.mjs"
   },
   "dependencies": {
-    "@electric-sql/pglite": "0.4.6",
+    "@electric-sql/pglite": "0.5.16",
     "@fontsource/dm-sans": "5.3.0",
     "@fontsource/noto-sans-devanagari": "5.3.0",
     "@fontsource/noto-sans-oriya": "5.3.0",
