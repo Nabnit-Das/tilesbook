@@ -510,5 +510,7 @@
   "libraryGloss": "Glossy tile",
   "libraryAdhesive": "Tile adhesive",
   "libraryBasin": "Wash basin",
-  "libraryMarble": "Marble slab"
+  "libraryMarble": "Marble slab",
+  "staff-sales": "Sales by salesperson",
+  "salesperson": "Salesperson"
 }

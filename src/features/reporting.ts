@@ -19,6 +19,7 @@ export function report(book:Snapshot,id:string,scope:Scope):ReportResult{
  const lots=book.records.lots||[],products=moduleRows(book,"items","products"),parties=moduleRows(book,"parties","parties");
  const balance=moduleRows(book,"partners","partners"),ord=get("saleOrders");
  switch(id){
+ case "staff-sales":return result("salesperson taxable tax total",group(invoices.map(r=>({...r,salesperson:r.salesperson||r.createdBy||"—"})),["salesperson"],["taxable","tax","total"]));
  case "sales-report":case "purchases-report":return result("date number partyName taxable tax total balance",id==="sales-report"?invoices:purchases);
  case "day-book":case "all-transactions":return result("date number partyName resource total status",[...all,...payments.map(p=>({...p,resource:p.direction==="in"?"payment-in":"payment-out",total:p.amount,partyName:str(lookup(book,"parties",p.partyId),"name")})),...expenses.map(e=>({...e,resource:"expenses",total:e.amount,partyName:e.name}))].sort((a,b)=>str(b,"date").localeCompare(str(a,"date"))));
  case "profit-loss":return statements(book,id,scope);
@@ -39,7 +40,7 @@ export function report(book:Snapshot,id:string,scope:Scope):ReportResult{
  case "hsn-summary":case "gst-rates":case "gst-report":{const k=id==="hsn-summary"?"hsn":"gstRate";return result(k+" taxable cgst sgst igst tax amount",group(salesLines,[k],["taxable","cgst","sgst","igst","tax","amount"]),"gstWorksheet")}
  case "sac-report":return result("name hsn salePrice gstRate",get("services"),"serviceMasterNote");
  case "stock-summary":case "item-detail":case "low-stock":return result("name category baseUnit sellable lowStockLevel salePrice",products.filter(p=>id!=="low-stock"||n(p,"sellable")<=n(p,"lowStockLevel")));
- case "stock-detail":return result("date lotId qty reason branchId",get("stockMovements"));
+ case "stock-detail":return result("date lotId physical reserved display kind branchId",get("stockMovements"));
  case "stock-by-category":return result("category baseUnit sellable",group(products,["category","baseUnit"],["sellable"]));
  case "item-discount":case "discount-report":return result("productId qty discount",group(salesLines.filter(l=>n(l,"discount")!==0),["productId"],["qty","discount"]));
  case "form-27eq":case "tcs-receivable":case "tds-payable":case "tds-receivable":{const key=id.includes("tds")?"tds":"tcs";return result("number partyId date "+key,all.filter(r=>n(r,key)!==0),"taxWorksheet")}

@@ -435,6 +435,7 @@ export const findModule = (slug: string) =>
 export const reports: Record<string, string[]> = {
   transaction: [
     "sales-report",
+    "staff-sales",
     "purchases-report",
     "day-book",
     "all-transactions",
