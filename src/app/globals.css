@@ -18,3 +18,15 @@
 .business-tools,.pin-pref{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:15px;margin-top:14px}.business-tools a,.business-tools button,.pin-pref label{display:flex;align-items:center;gap:8px;font-size:.88rem}.business-tools a{margin-right:auto;color:var(--teal)}.pin-lock{min-height:100vh;display:grid;place-items:center}.pin-lock form{width:min(360px,92vw);display:grid;gap:16px;padding:24px}.pin-lock h1{font-size:1.5rem}.pin-lock label{display:grid;gap:8px}.pin-lock input,.pin-pref input{padding:8px}.pin-pref{padding-inline:0;border-bottom:1px solid var(--line)}
 .outbox-row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--line)}.outbox-row b,.outbox-row small{display:block}.outbox-row small{color:#4b596b}.outbox-row p{font-size:.9rem;max-width:65ch}
 .shop-help>div,.support-phone{display:flex;align-items:center;gap:6px}.shop-help>div:not(:empty){margin:12px 0}.support-phone{color:var(--teal)}
+.customer-login .login-brand{background:linear-gradient(145deg,#073b40,#0d5556 65%,#092e36);color:#fff}
+.customer-login .login-panel{overflow:auto}
+.auth-links{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-top:1rem}
+.auth-links small{color:#465965}
+.customer-login .auth-terms{display:flex;align-items:flex-start;gap:.6rem}
+.customer-login .auth-terms input{width:1.2rem;height:1.2rem;flex:none}
+.access-main{min-height:100vh;background:#073f42;padding:clamp(16px,4vw,64px);color:white}
+.access-card{background:white;color:#14183f;margin:2rem auto;padding:clamp(18px,4vw,42px);max-width:760px;border-radius:20px}
+.access-card form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:1rem}
+.access-card label{display:grid;gap:.4rem}
+.access-card input,.access-card select{min-height:44px;font-size:1rem;border:1px solid #91a6a6;border-radius:8px;padding:8px;color:#14183f;background:#fff}
+.access-card .btn{min-height:44px}

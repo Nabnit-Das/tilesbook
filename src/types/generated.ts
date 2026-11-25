@@ -1123,14 +1123,23 @@ isOneToOne: false
 "tilebook_new_business":
 { Args: { "p_address": string,"p_name": string,"p_state": string }; Returns: string
                            },
+"tilebook_onboard":
+{ Args: { "p_profile": Json }; Returns: string
+                           },
 "tilebook_portal":
 { Args: { "p_token": string }; Returns: Json
                            },
 "tilebook_prepare_messages":
 { Args: { "p_business_id": string }; Returns: Json
                            },
+"tilebook_revoke_staff":
+{ Args: { "p_business_id": string,"p_invitation": string }; Returns: undefined
+                           },
 "tilebook_snapshot":
 { Args: { "p_business_id"?: string }; Returns: Json
+                           },
+"tilebook_workspaces":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            }
           }
           Enums: {

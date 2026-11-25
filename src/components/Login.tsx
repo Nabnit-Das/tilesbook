@@ -1,8 +1,309 @@
-'use client';
-import {useState} from 'react';import {useLocale,useTranslations} from 'next-intl';import {LockKeyhole,Phone,ArrowRight,Store,Layers} from 'lucide-react';import Brand from './Brand';import {useChangeLocale,type Lang} from './Locale';
-export default function Login({demo,email}:{demo:boolean;email:boolean}){
- const t=useTranslations(),locale=useLocale(),lang=useChangeLocale();const [step,setStep]=useState<'phone'|'otp'|'email'>('phone'),[phone,setPhone]=useState(demo?'9999999999':''),[code,setCode]=useState(''),[mail,setMail]=useState(''),[pw,setPw]=useState(''),[err,setErr]=useState(''),[busy,setBusy]=useState(false);
- async function act(action:string,number=phone,otp=code){setBusy(true);setErr('');try{const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,phone:number,otp,email:mail,password:pw})});const json=await r.json();if(!r.ok)throw new Error(json.error);if(action==='send')setStep('otp');else location.replace('/');}catch(e){setErr(e instanceof Error?e.message:String(e));}finally{setBusy(false);}}
- return <main className="login"><section className="login-brand"><Brand/><div className="tile-art" aria-hidden="true">{Array.from({length:16},(_,i)=><i key={i}/>)}</div><div><Layers size={30}/><h1>TileBook</h1><p>{t('loginCopy')}</p></div></section><section className="login-panel"><div className="langchips">{(['or','hi','en'] as Lang[]).map((l,i)=><button className={l===locale?'selected':''} key={l} onClick={()=>lang(l)}>{['ଓଡ଼ିଆ','हिन्दी','English'][i]}</button>)}</div><form onSubmit={e=>{e.preventDefault();void act(step==='phone'?'send':step==='otp'?'verify':'email');}}><div className="login-icon"><Store/></div><h2>{t('signIn')}</h2>{step==='email'?<><label>{t('email')}<input type="email" value={mail} required onChange={e=>setMail(e.target.value)}/></label><label>{t('password')}<input type="password" value={pw} required onChange={e=>setPw(e.target.value)}/></label></>:<><label>{t('phone')}<span className="phoneinput"><Phone size={17}/>+91<input type="tel" inputMode="numeric" pattern="[0-9]{10}" value={phone} required readOnly={step==='otp'} autoComplete="tel-national" onChange={e=>setPhone(e.target.value)}/></span></label>{step==='otp'&&<label>{t('code')}<input value={code} onChange={e=>setCode(e.target.value)} autoFocus autoComplete="one-time-code" pattern="[0-9]{6}" inputMode="numeric" required/></label>}</>}{err&&<p role="alert">{err}</p>}<button className="btn primary full" disabled={busy}>{step==='phone'?t('send'):t('continue')}<ArrowRight size={16}/></button>{step!=='phone'&&<button type="button" className="text-button" onClick={()=>setStep('phone')}>{t('change')}</button>}
- {demo&&<div className="demo-options"><span><LockKeyhole size={15}/>{t('demo')} · OTP 123456</span><div><button type="button" disabled={busy} onClick={()=>act('verify','9999999999','123456')}>{t('ownerDemo')}</button><button type="button" disabled={busy} onClick={()=>act('verify','9999999998','123456')}>{t('counterDemo')}</button></div></div>}{email&&<button type="button" onClick={()=>setStep('email')}>{t('devEmail')}</button>}</form></section></main>;
+"use client";
+import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { ArrowRight, Eye, EyeOff, Store } from "lucide-react";
+import Brand from "./Brand";
+import { useChangeLocale, type Lang } from "./Locale";
+import { clearLocalBooks } from "@/lib/offline";
+type Step =
+  | "email"
+  | "register"
+  | "confirm"
+  | "forgot"
+  | "reset"
+  | "send"
+  | "verify"
+  | "linkPhone"
+  | "confirmPhone";
+const titles: Record<Step, string> = {
+  email: "signIn",
+  register: "register",
+  confirm: "verifyEmail",
+  forgot: "forgotPassword",
+  reset: "resetPassword",
+  send: "phoneSignIn",
+  verify: "verifyPhone",
+  linkPhone: "linkPhone",
+  confirmPhone: "verifyPhone",
+};
+export default function Login({
+  demo,
+  sms,
+  link = false,
+  phoneFirst = false,
+}: {
+  demo: boolean;
+  sms: boolean;
+  link?: boolean;
+  phoneFirst?: boolean;
+}) {
+  const t = useTranslations(),
+    locale = useLocale(),
+    lang = useChangeLocale();
+  const [step, setStep] = useState<Step>(
+      link ? "linkPhone" : demo || phoneFirst ? "send" : "email",
+    ),
+    [email, setEmail] = useState(""),
+    [phone, setPhone] = useState(demo ? "9999999999" : ""),
+    [show, setShow] = useState(false),
+    [message, setMessage] = useState(""),
+    [error, setError] = useState(""),
+    [busy, setBusy] = useState(false);
+  function go(next: Step) {
+    setStep(next);
+    setError("");
+    setMessage("");
+    setShow(false);
+  }
+  async function submit(values: Record<string, unknown>, action: Step = step) {
+    setError("");
+    setMessage("");
+    if ("confirm" in values && values.confirm !== values.password) {
+      setError("passwordMismatch");
+      return;
+    }
+    setBusy(true);
+    try {
+      const r = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, phone, ...values, action }),
+      });
+      if (!r.ok) {
+        const code = (await r.json()).error;
+        setError(
+          ["authWait", "smsUnavailable", "verificationUnavailable", "authInvalid"].includes(code)
+            ? code
+            : "authFailed",
+        );
+        return;
+      }
+      const next: Partial<Record<Step, Step>> = {
+        send: "verify",
+        linkPhone: "confirmPhone",
+        forgot: "reset",
+        register: "confirm",
+      };
+      if (next[action]) {
+        go(next[action]!);
+        setMessage(
+          action === "register" || action === "forgot"
+            ? "checkEmail"
+            : "checkPhone",
+        );
+      } else {
+        await clearLocalBooks();
+        location.replace("/access");
+      }
+    } catch {
+      setError("authFailed");
+    } finally {
+      setBusy(false);
+    }
+  }
+  const otp = ["confirm", "verify", "reset", "confirmPhone"].includes(step),
+    mobile = ["send", "verify", "linkPhone", "confirmPhone"].includes(step),
+    password = ["email", "register", "reset"].includes(step);
+  const nav = (s: Step) => (
+    <button
+      type="button"
+      disabled={busy}
+      className="text-button"
+      onClick={() => go(s)}
+    >
+      {t(titles[s])}
+    </button>
+  );
+  return (
+    <main className="login customer-login">
+      <section className="login-brand">
+        <Brand />
+        <div className="tile-art" aria-hidden="true">
+          {Array.from({ length: 16 }, (_, i) => (
+            <i key={i} />
+          ))}
+        </div>
+        <div>
+          <Store size={30} />
+          <h1>TileBook</h1>
+          <p>{t("loginCopy")}</p>
+        </div>
+      </section>
+      <section className="login-panel">
+        <div className="langchips">
+          {(["or", "hi", "en"] as Lang[]).map((l, i) => (
+            <button
+              key={l}
+              aria-pressed={l === locale}
+              className={l === locale ? "selected" : ""}
+              onClick={() => lang(l)}
+            >
+              {["ଓଡ଼ିଆ", "हिन्दी", "English"][i]}
+            </button>
+          ))}
+        </div>
+        <form
+          key={step}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.currentTarget));
+            void submit({
+              ...data,
+              ...(step === "register" ? { terms: data.terms === "on" } : {}),
+            });
+          }}
+        >
+          <h2>{t(titles[step])}</h2>
+          {step === "register" && (
+            <label>
+              {t("fullName")}
+              <input
+                name="fullName"
+                autoComplete="name"
+                maxLength={120}
+                required
+              />
+            </label>
+          )}
+          {mobile ? (
+            <label>
+              {t("phone")}
+              <span className="phoneinput">
+                +91
+                <input
+                  type="tel"
+                  required
+                  value={phone}
+                  pattern="[0-9]{10}"
+                  autoComplete="tel-national"
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </span>
+            </label>
+          ) : (
+            <label>
+              {t("email")}
+              <input
+                type="email"
+                required
+                value={email}
+                maxLength={254}
+                autoComplete="email"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </label>
+          )}
+          {otp && (
+            <label>
+              {t("code")}
+              <input
+                name="otp"
+                autoComplete="one-time-code"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                inputMode="numeric"
+                required
+              />
+            </label>
+          )}
+          {password && (
+            <>
+              <label>
+                {t("password")}
+                <input
+                  type={show ? "text" : "password"}
+                  name="password"
+                  required
+                  autoComplete={
+                    step === "email" ? "current-password" : "new-password"
+                  }
+                  minLength={step === "email" ? 1 : 10}
+                  maxLength={step === "email" ? 256 : 128}
+                />
+              </label>
+              {step !== "email" && (
+                <label>
+                  {t("confirmPassword")}
+                  <input
+                    name="confirm"
+                    type={show ? "text" : "password"}
+                    autoComplete="new-password"
+                    required
+                    minLength={10}
+                  />
+                </label>
+              )}
+              <button
+                className="text-button"
+                type="button"
+                aria-pressed={show}
+                onClick={() => setShow(!show)}
+              >
+                {show ? <EyeOff size={16} /> : <Eye size={16} />}{" "}
+                {t(show ? "hidePassword" : "showPassword")}
+              </button>
+            </>
+          )}
+          {step === "register" && (
+            <label className="auth-terms">
+              <input name="terms" type="checkbox" required />
+              {t("termsAcceptance")}
+            </label>
+          )}
+          {error && <p role="alert">{t(error)}</p>}
+          {message && <p role="status">{t(message)}</p>}
+          <button
+            className="btn primary full"
+            disabled={busy || (mobile && !sms && !demo)}
+          >
+            {t(
+              busy
+                ? "loading"
+                : step === "send" || step === "linkPhone"
+                  ? "send"
+                  : "continue",
+            )}
+            <ArrowRight size={16} />
+          </button>
+          {mobile && !demo && !sms && <p>{t("smsUnavailable")}</p>}
+          <div className="auth-links">
+            {!link && !demo && (
+              <>
+                {step !== "email" && nav("email")}
+                {step === "email" && (
+                  <>
+                    {nav("register")}
+                    {nav("forgot")}
+                    {nav("confirm")}
+                    {sms ? nav("send") : <small>{t("smsUnavailable")}</small>}
+                  </>
+                )}
+              </>
+            )}
+            {step === "verify" && nav("send")}
+            {link && <a href="/settings">{t("settings")}</a>}
+          </div>
+          {demo && (
+            <div className="demo-options">
+              <span>{t("demo")} · OTP 123456</span>
+              <div>
+                {["9999999999", "9999999998"].map((p, i) => (
+                  <button
+                    key={p}
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      submit({ phone: p, otp: "123456" }, "verify")
+                    }
+                  >
+                    {t(i ? "counterDemo" : "ownerDemo")}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </form>
+      </section>
+    </main>
+  );
 }

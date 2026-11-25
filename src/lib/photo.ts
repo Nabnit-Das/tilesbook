@@ -1,4 +1,4 @@
-export async function saveShopPhoto(firm: string, kind: string, jpeg: string) {
+export async function saveShopPhoto(firm: string, kind: string, jpeg: string, expectedUser?:string) {
   if (!navigator.onLine) return jpeg;
   const bucket =
     kind === "purchaseBills"
@@ -19,7 +19,7 @@ export async function saveShopPhoto(firm: string, kind: string, jpeg: string) {
   const data = await (await fetch(jpeg)).blob();
   const response = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "image/jpeg" },
+    headers: { "Content-Type": "image/jpeg", ...(expectedUser?{"X-TileBook-User":expectedUser}:{}) },
     body: data,
   });
   if (!response.ok) throw new Error("Photo upload failed");

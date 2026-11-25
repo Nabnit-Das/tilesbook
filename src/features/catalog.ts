@@ -419,7 +419,7 @@ export const modules: Module[] = [
     fields: [
       txt("name", true),
       txt("phone", true),
-      choice("role", ["Manager", "Counter", "Godown", "Accountant", "Owner"]),
+      choice("role", ["Manager", "Counter", "Godown", "Accountant"]),
     ],
   },
   {

@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
+import {profileSchema} from './onboarding';
 import { identity, localRequest } from "./identity";
 import { asUser, embeddedDatabase } from "./embedded";
 import type { Json, MutationResult, Snapshot } from "../types/database";
@@ -10,7 +11,7 @@ type Operation =
   | "tilebook_snapshot"
   | "tilebook_mutate"
   | "tilebook_new_business"
-  | "tilebook_prepare_messages" | "tilebook_backup_file";
+  | "tilebook_workspaces" | "tilebook_onboard" | "tilebook_revoke_staff" | "tilebook_prepare_messages" | "tilebook_backup_file";
 export type {
   Row,
   Json,
@@ -24,6 +25,7 @@ const mutation = z
   .object({
     businessId: z.uuid().optional(),
     requestId: z.uuid().optional(),
+    expectedUser:z.uuid().optional(),
     resource: z.string().regex(/^[a-z][A-Za-z]{1,40}$/),
     action: z.enum(["create", "update", "restore"]).default("create"),
     data: z.record(z.string(), z.json()),
@@ -37,7 +39,7 @@ const businessInfo = z
   })
   .strict();
 function supabase(token?: string) {
-  const url = z.url().parse(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const url = z.url().parse((process.env.SUPABASE_INTERNAL_URL || process.env.NEXT_PUBLIC_SUPABASE_URL));
   const key = z
     .string()
     .min(1)
@@ -59,9 +61,10 @@ export async function health(): Promise<void> {
 }
 async function invoke<F extends Operation>(
   fn: F,
-  params: Functions[F]["Args"],
+  params: Functions[F]["Args"], expectedUser?:string,
 ): Promise<Functions[F]["Returns"]> {
   const user = await identity();
+  if(expectedUser && user.id!==expectedUser)throw new Error('Session identity changed');
   if (!user?.id) throw new Error("Sign in required");
   if (await localRequest()) {
     const db = await embeddedDatabase();
@@ -148,7 +151,10 @@ export async function mutate(input: unknown): Promise<MutationResult> {
     p_action: v.action,
     p_data: v.data,
     p_request_id: v.requestId ?? randomUUID(),
-  })) as unknown as MutationResult;
+  },v.expectedUser)) as unknown as MutationResult;
 }
 
+export async function workspaces(){return z.array(z.object({id:z.uuid(),name:z.string()})).parse(await invoke("tilebook_workspaces",{}));}
+export function onboard(input:unknown){return invoke("tilebook_onboard",{p_profile:profileSchema.parse(input)});}
+export function revokeStaff(businessId:string,invitation:string){return invoke("tilebook_revoke_staff",{p_business_id:businessId,p_invitation:invitation});}
 export function backupFile(businessId:string,file?:string){return invoke("tilebook_backup_file",{p_business_id:businessId,p_confirm:file!==undefined,...(file===undefined?{}:{p_file:file})});}

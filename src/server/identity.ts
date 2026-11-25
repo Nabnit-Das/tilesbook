@@ -1,3 +1,4 @@
+import {demoAllowed} from './auth-policy';
 import { cookies, headers } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
@@ -10,12 +11,11 @@ export const counterId = '00000000-0000-4000-8000-000000000002';
 export const demoEnabled = () => process.env.TILEBOOK_LOCAL_DEMO === '1' && !process.env.VERCEL && !process.env.SUPABASE_PROJECT_REF;
 export async function localRequest(){
   const h = await headers();
-  const local = (value:string|null) => !!value && /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i.test(value);
-  return demoEnabled() && local(h.get('host')) && (!h.has('x-forwarded-host') || local(h.get('x-forwarded-host')));
+  return demoAllowed((process as NodeJS.Process & {tilebookLoopbackDemo?:boolean}).tilebookLoopbackDemo===true,demoEnabled(),h.get('host'),h.get('x-forwarded-host'),!!process.env.VERCEL);
 }
 const envSchema = z.object({url:z.string().url(),key:z.string().min(10)});
 export async function authClient(){
-  const env=envSchema.safeParse({url:process.env.NEXT_PUBLIC_SUPABASE_URL,key:process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY});
+  const env=envSchema.safeParse({url:(process.env.SUPABASE_INTERNAL_URL || process.env.NEXT_PUBLIC_SUPABASE_URL),key:process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY});
   if(!env.success)throw new Error('Supabase configuration is missing. Run npm run setup or npm run demo.');
   const jar=await cookies();
   return createServerClient(env.data.url,env.data.key,{cookies:{getAll:()=>jar.getAll(),setAll(values){for(const v of values)jar.set(v.name,v.value,v.options);}}});

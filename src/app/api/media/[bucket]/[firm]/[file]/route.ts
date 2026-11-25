@@ -4,9 +4,9 @@ const paramsSchema=z.object({bucket:z.enum(['damage-photos','lot-photos','vein-m
 type Context={params:Promise<{bucket:string;firm:string;file:string}>};
 const imageHeaders={'Content-Type':'image/jpeg','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'};
 async function serve(req:Request,ctx:Context,write:boolean){
- try{const p=paramsSchema.parse(await ctx.params),book=await getSnapshot(p.firm);if(book.business.id!==p.firm)throw Error('Permission denied');
+ try{const p=paramsSchema.parse(await ctx.params),book=await getSnapshot(p.firm);const actor=req.headers.get('X-TileBook-User');if(actor&&actor!==book.userId)return new Response(null,{status:403});if(book.business.id!==p.firm)throw Error('Permission denied');
  if(p.bucket==="purchase-bills"&&!["Owner","Manager",...(write?[]:["Accountant"])].includes(book.role))return new Response(null,{status:403});
- if(write&&(book.role==='Accountant'||(p.bucket==='logos'&&!['Owner','Manager'].includes(book.role))))return new Response(null,{status:403});
+ if(write&&(book.role==='Accountant'||(p.bucket==='logos'&&book.role!=='Owner')))return new Response(null,{status:403});
  const embedded=await localRequest();const object=p.firm+'/'+p.file;const folder=path.resolve(process.env.TILEBOOK_DATA_DIR||'.tilebook/data','../private-media',p.bucket,p.firm);const file=path.join(folder,p.file);
  if(write){
   if(req.headers.get('content-type')!=='image/jpeg'||Number(req.headers.get('content-length'))>1024*1024)return new Response(null,{status:415});
