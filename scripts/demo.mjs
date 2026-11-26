@@ -3,9 +3,23 @@ import { existsSync } from "node:fs";
 import next from "next";
 const args = process.argv.slice(2);
 const portFlag = args.findIndex((a) => a === "--port" || a === "-p");
-const port = Number(
-  portFlag >= 0 ? args[portFlag + 1] : process.env.PORT || 3000,
-);
+const rawPort =
+  portFlag >= 0
+    ? args[portFlag + 1]
+    : process.env.PORT || "3000";
+
+const port = Number(rawPort);
+
+if (
+  !/^\d+$/.test(rawPort ?? "") ||
+  !Number.isInteger(port) ||
+  port < 1 ||
+  port > 65535
+) {
+  throw new Error(
+    "Invalid port. Enter an integer between 1 and 65535."
+  );
+}
 const hostname = "127.0.0.1";
 process.env.TILEBOOK_LOCAL_DEMO = "1";
 const chrome = [
