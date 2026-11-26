@@ -37,7 +37,15 @@ const app = next({
 await app.prepare();
 const handle = app.getRequestHandler();
 const server = http.createServer(handle);
-server.listen(port, hostname, () => {
-  Object.defineProperty(process, "tilebookLoopbackDemo", { value: true });
-  console.log("TileBook demo at http://" + hostname + ":" + port);
+server.on("error", (error) => {
+  if (error.code === "EADDRINUSE") {
+    console.error(
+      `Port ${port} is already in use. ` +
+      "Stop the existing server or choose another port."
+    );
+  } else {
+    console.error("Unable to start TileBook:", error.message);
+  }
+
+  process.exit(1);
 });

@@ -31,10 +31,20 @@ test("shopkeeper bills a new party from a new tile lot, records money, prints an
   await page.locator("input[type=tel]").fill("9999999999");
   await page.locator("form button:not([type=button])").click();
   await page.locator('input[autocomplete="one-time-code"]').fill("123456");
-  await page.locator("form button:not([type=button])").click();
-  await expect(page).not.toHaveURL(/\/login/);
+  await Promise.all([
+    page.waitForResponse(
+      (r) =>
+        new URL(r.url()).pathname === "/api/auth" &&
+        r.request().method() === "POST" &&
+        r.ok(),
+    ),
+    page.locator("form button:not([type=button])").click(),
+  ]);
+  await expect(page).not.toHaveURL(/\/login/, { timeout: 15000 });
+  await page.waitForLoadState("networkidle");
 
-  await page.goto("/parties?new=1");
+  await page.goto("/parties?new=1", { waitUntil: "domcontentloaded" });
+  await expect(page).toHaveURL(/\/parties/);
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await dialog.locator('[name="name"]').fill(customer);
@@ -153,3 +163,4 @@ test("shopkeeper bills a new party from a new tile lot, records money, prints an
     await reportPdf.destroy();
   }
 });
+
