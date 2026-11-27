@@ -303,5 +303,11 @@
   "pin": "PIN code",
   "financialYear": "Financial year starting April (YYYY)",
   "staffAccess": "Staff access",
-  "revokeStaff": "Revoke access"
+  "revokeStaff": "Revoke access",
+  "privacyConsent": "I accept the privacy policy.",
+  "privacyPolicy": "Privacy policy",
+  "privacyText": "TileBook uses your contact details to verify your identity. Your authorized staff can access business records according to their role. Offline billing keeps records on this device. Signing out clears snapshots and retains pending entries for your next sign-in.",
+  "codeExpired": "This code has expired. Request a new code.",
+  "resendCode": "Resend code",
+  "registrationStep": "Registration · Step {step} of 4"
 }

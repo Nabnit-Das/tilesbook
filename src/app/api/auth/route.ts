@@ -1,4 +1,4 @@
-import {requiresEmailProof} from '@/server/email-config';
+import { requiresEmailProof } from "@/server/email-config";
 import { cookies } from "next/headers";
 import {
   authClient,
@@ -71,14 +71,23 @@ export async function POST(req: Request) {
       return answer();
     }
     const client = await authClient();
-    if ("phone" in v && !smsAvailable()) return answer(503, "smsUnavailable");
+    if ("phone" in v && v.action !== "register" && !smsAvailable(v.phone))
+      return answer(503, "smsUnavailable");
     switch (v.action) {
       case "register": {
-        if(!await requiresEmailProof())return answer(503,"verificationUnavailable");
+        if (!(await requiresEmailProof()))
+          return answer(503, "verificationUnavailable");
         const { error } = await client.auth.signUp({
           email: v.email,
           password: v.password,
-          options: { data: { full_name: v.fullName, terms_version: "1" } },
+          options: {
+            data: {
+              full_name: v.fullName,
+              terms_version: "1",
+              privacy_version: "1",
+              registration_phone: v.phone,
+            },
+          },
         });
         if (error && error.code !== "user_already_exists")
           return answer(
@@ -95,6 +104,16 @@ export async function POST(req: Request) {
         if (error) return answer(401, "authFailed");
         break;
       }
+      case "resendEmail": {
+        const { error } = await client.auth.resend({
+          type: "signup",
+          email: v.email,
+        });
+        if (error?.status === 429) return answer(429, "authWait");
+        if (error && error.status && error.status >= 500)
+          return answer(503, "authFailed");
+        break;
+      }
       case "forgot": {
         const { error } = await client.auth.resetPasswordForEmail(v.email);
         if (error?.status === 429) return answer(429, "authWait");
@@ -109,7 +128,11 @@ export async function POST(req: Request) {
           token: v.otp,
           type: v.action === "reset" ? "recovery" : "signup",
         });
-        if (error) return answer(400, "authFailed");
+        if (error)
+          return answer(
+            400,
+            error.code === "otp_expired" ? "codeExpired" : "authFailed",
+          );
         if (v.action === "reset") {
           const { error } = await client.auth.updateUser({
             password: v.password,
@@ -120,6 +143,7 @@ export async function POST(req: Request) {
       }
       case "send": {
         const { error } = await client.auth.signInWithOtp({
+          options: { shouldCreateUser: false },
           phone: "+91" + v.phone,
         });
         if (error) return answer(400, "authFailed");
@@ -135,13 +159,21 @@ export async function POST(req: Request) {
       }
       case "confirmPhone":
       case "verify": {
-        if (v.action === "confirmPhone") await identity();
-        const { error } = await client.auth.verifyOtp({
+        const linking = v.action === "confirmPhone" ? await identity() : null;
+        const { data, error } = await client.auth.verifyOtp({
           phone: "+91" + v.phone,
           token: v.otp,
           type: v.action === "verify" ? "sms" : "phone_change",
         });
-        if (error) return answer(400, "authFailed");
+        if (error)
+          return answer(
+            400,
+            error.code === "otp_expired" ? "codeExpired" : "authFailed",
+          );
+        if (linking && data?.user?.id !== linking.id) {
+          await client.auth.signOut({ scope: "local" });
+          return answer(401, "authFailed");
+        }
         break;
       }
     }

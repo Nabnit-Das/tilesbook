@@ -4,7 +4,7 @@ const email = z
   .trim()
   .max(254)
   .transform((s) => s.toLowerCase());
-const phone = z.string().regex(/^\d{10}$/);
+const phone = z.string().regex(/^[6-9]\d{9}$/);
 const otp = z.string().regex(/^\d{6}$/);
 const password = z.string().min(10).max(128);
 export const authInput = z
@@ -16,12 +16,15 @@ export const authInput = z
     }),
     z.object({
       action: z.literal("register"),
+      phone: z.string().regex(/^[6-9]\d{9}$/),
+      privacy: z.literal(true),
       email,
       password,
       confirm: z.string(),
       fullName: z.string().trim().min(1).max(120),
       terms: z.literal(true),
     }),
+    z.object({ action: z.literal("resendEmail"), email }),
     z.object({ action: z.literal("confirm"), email, otp }),
     z.object({ action: z.literal("forgot"), email }),
     z.object({
@@ -55,12 +58,13 @@ export function demoAllowed(
     (!forwarded || loop(forwarded))
   );
 }
-export function smsAvailable() {
+export function smsAvailable(phone?:string) {
   if (process.env.TILEBOOK_SMS_ENABLED === "1") return true;
   return (
-    process.env.TILEBOOK_TEST_SMS === "1" &&
+    process.env.TILEBOOK_TEST_SMS === "1" && !process.env.VERCEL &&
+    (!phone || /^(999999999[89]|900000009[1-8])$/.test(phone)) &&
     /^http:\/\/(localhost|127\.0\.0\.1):54321$/.test(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+      process.env.SUPABASE_INTERNAL_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "",
     )
   );
 }

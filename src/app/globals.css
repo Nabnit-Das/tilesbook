@@ -30,3 +30,5 @@
 .access-card label{display:grid;gap:.4rem}
 .access-card input,.access-card select{min-height:44px;font-size:1rem;border:1px solid #91a6a6;border-radius:8px;padding:8px;color:#14183f;background:#fff}
 .access-card .btn{min-height:44px}
+
+.password-box{position:relative;display:block}.password-box input{width:100%;padding-inline-end:3.4rem!important}.password-toggle{position:absolute;inset-inline-end:0;top:0;bottom:0;min-width:44px;display:grid;place-items:center;color:#165855}.auth-methods{display:flex;background:#edf4f3;border-radius:10px;padding:4px;gap:4px}.auth-methods button{flex:1;min-height:44px;border-radius:7px}.auth-methods [aria-pressed=true]{background:#095750;color:white}.auth-progress{color:#16615b;font-weight:600}.customer-login .login-panel form{margin-block:auto;padding-block:1rem}

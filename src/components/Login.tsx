@@ -31,20 +31,30 @@ export default function Login({
   sms,
   link = false,
   phoneFirst = false,
+  registrationPhone = "",
+  verifyEmail = false,
 }: {
   demo: boolean;
   sms: boolean;
   link?: boolean;
   phoneFirst?: boolean;
+  registrationPhone?: string;
+  verifyEmail?: boolean;
 }) {
   const t = useTranslations(),
     locale = useLocale(),
     lang = useChangeLocale();
   const [step, setStep] = useState<Step>(
-      link ? "linkPhone" : demo || phoneFirst ? "send" : "email",
+      verifyEmail
+        ? "confirm"
+        : link
+          ? "linkPhone"
+          : demo || phoneFirst
+            ? "send"
+            : "email",
     ),
     [email, setEmail] = useState(""),
-    [phone, setPhone] = useState(demo ? "9999999999" : ""),
+    [phone, setPhone] = useState(demo ? "9999999999" : registrationPhone),
     [show, setShow] = useState(false),
     [message, setMessage] = useState(""),
     [error, setError] = useState(""),
@@ -55,7 +65,10 @@ export default function Login({
     setMessage("");
     setShow(false);
   }
-  async function submit(values: Record<string, unknown>, action: Step = step) {
+  async function submit(
+    values: Record<string, unknown>,
+    action: Step | "resendEmail" = step,
+  ) {
     setError("");
     setMessage("");
     if ("confirm" in values && values.confirm !== values.password) {
@@ -72,7 +85,13 @@ export default function Login({
       if (!r.ok) {
         const code = (await r.json()).error;
         setError(
-          ["authWait", "smsUnavailable", "verificationUnavailable", "authInvalid"].includes(code)
+          [
+            "codeExpired",
+            "authWait",
+            "smsUnavailable",
+            "verificationUnavailable",
+            "authInvalid",
+          ].includes(code)
             ? code
             : "authFailed",
         );
@@ -84,6 +103,10 @@ export default function Login({
         forgot: "reset",
         register: "confirm",
       };
+      if (action === "resendEmail") {
+        setMessage("checkEmail");
+        return;
+      }
       if (next[action]) {
         go(next[action]!);
         setMessage(
@@ -149,11 +172,35 @@ export default function Login({
             const data = Object.fromEntries(new FormData(e.currentTarget));
             void submit({
               ...data,
-              ...(step === "register" ? { terms: data.terms === "on" } : {}),
+              ...(step === "register"
+                ? { terms: data.terms === "on", privacy: data.privacy === "on" }
+                : {}),
             });
           }}
         >
+          {(step === "register" || step === "confirm" || link) && (
+            <p className="auth-progress">
+              {t("registrationStep", {
+                step: step === "register" ? 1 : step === "confirm" ? 2 : 3,
+              })}
+            </p>
+          )}
           <h2>{t(titles[step])}</h2>
+          {!demo && (step === "email" || step === "send") && (
+            <div className="auth-methods">
+              {(["email", "send"] as const).map((s) => (
+                <button
+                  type="button"
+                  key={s}
+                  disabled={busy || (s === "send" && !sms)}
+                  aria-pressed={step === s}
+                  onClick={() => go(s)}
+                >
+                  {t(s === "email" ? "email" : "phone")}
+                </button>
+              ))}
+            </div>
+          )}
           {step === "register" && (
             <label>
               {t("fullName")}
@@ -193,6 +240,22 @@ export default function Login({
               />
             </label>
           )}
+          {step === "register" && (
+            <label>
+              {t("phone")}
+              <span className="phoneinput">
+                +91
+                <input
+                  type="tel"
+                  required
+                  autoComplete="tel-national"
+                  pattern="[6-9][0-9]{9}"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </span>
+            </label>
+          )}
           {otp && (
             <label>
               {t("code")}
@@ -210,16 +273,27 @@ export default function Login({
             <>
               <label>
                 {t("password")}
-                <input
-                  type={show ? "text" : "password"}
-                  name="password"
-                  required
-                  autoComplete={
-                    step === "email" ? "current-password" : "new-password"
-                  }
-                  minLength={step === "email" ? 1 : 10}
-                  maxLength={step === "email" ? 256 : 128}
-                />
+                <span className="password-box">
+                  <input
+                    type={show ? "text" : "password"}
+                    name="password"
+                    required
+                    autoComplete={
+                      step === "email" ? "current-password" : "new-password"
+                    }
+                    minLength={step === "email" ? 1 : 10}
+                    maxLength={step === "email" ? 256 : 128}
+                  />{" "}
+                  <button
+                    className="password-toggle"
+                    aria-label={t(show ? "hidePassword" : "showPassword")}
+                    type="button"
+                    aria-pressed={show}
+                    onClick={() => setShow(!show)}
+                  >
+                    {show ? <EyeOff size={16} /> : <Eye size={16} />}{" "}
+                  </button>
+                </span>
               </label>
               {step !== "email" && (
                 <label>
@@ -233,21 +307,23 @@ export default function Login({
                   />
                 </label>
               )}
-              <button
-                className="text-button"
-                type="button"
-                aria-pressed={show}
-                onClick={() => setShow(!show)}
-              >
-                {show ? <EyeOff size={16} /> : <Eye size={16} />}{" "}
-                {t(show ? "hidePassword" : "showPassword")}
-              </button>
             </>
           )}
           {step === "register" && (
             <label className="auth-terms">
               <input name="terms" type="checkbox" required />
               {t("termsAcceptance")}
+            </label>
+          )}
+          {step === "register" && (
+            <label className="auth-terms">
+              <input type="checkbox" required name="privacy" />
+              <span>
+                {t("privacyConsent")}{" "}
+                <a href="/privacy" target="_blank" rel="noreferrer">
+                  {t("privacyPolicy")}
+                </a>
+              </span>
             </label>
           )}
           {error && <p role="alert">{t(error)}</p>}
@@ -265,17 +341,38 @@ export default function Login({
             )}
             <ArrowRight size={16} />
           </button>
+          {otp && (
+            <button
+              type="button"
+              className="text-button"
+              disabled={busy}
+              onClick={() =>
+                submit(
+                  {},
+                  step === "confirm"
+                    ? "resendEmail"
+                    : step === "reset"
+                      ? "forgot"
+                      : step === "confirmPhone"
+                        ? "linkPhone"
+                        : "send",
+                )
+              }
+            >
+              {t("resendCode")}
+            </button>
+          )}
           {mobile && !demo && !sms && <p>{t("smsUnavailable")}</p>}
           <div className="auth-links">
             {!link && !demo && (
               <>
-                {step !== "email" && nav("email")}
+                {step !== "email" && step !== "send" && nav("email")}
                 {step === "email" && (
                   <>
                     {nav("register")}
                     {nav("forgot")}
                     {nav("confirm")}
-                    {sms ? nav("send") : <small>{t("smsUnavailable")}</small>}
+                    {!sms && <small>{t("smsUnavailable")}</small>}
                   </>
                 )}
               </>

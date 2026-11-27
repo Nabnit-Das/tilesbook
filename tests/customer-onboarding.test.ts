@@ -21,9 +21,12 @@ const profile = {
 let db: Awaited<ReturnType<typeof openEmbedded>>;
 beforeAll(async () => {
   db = await openEmbedded();
+  await db.exec(
+    "alter table auth.users add column if not exists email text, add column if not exists email_confirmed_at timestamptz",
+  );
   for (const [i, id] of [...owners, staff].entries())
     await db.query(
-      "insert into auth.users(id,phone,phone_confirmed_at) values($1,$2,now())",
+      "insert into auth.users(id,phone,phone_confirmed_at,email,email_confirmed_at) values($1,$2,now(),$2||'@example.test',now())",
       [id, "91900000001" + i],
     );
 }, 45000);
@@ -49,6 +52,9 @@ it("creates three isolated empty workspaces and returns the original on concurre
   ]);
   expect(a).toBe(again);
   expect(new Set([a, b, c]).size).toBe(3);
+  await db.exec(
+    "alter table auth.users add column if not exists email text, add column if not exists email_confirmed_at timestamptz",
+  );
   for (const [i, id] of [a, b, c].entries()) {
     expect(await rpc(owners[i], "tilebook_workspaces()")).toEqual([
       { id, name: profile.name },
@@ -105,6 +111,25 @@ it("requires verified identity even when a database role is authenticated", asyn
   await db.query("insert into auth.users(id) values($1)", [id]);
   await expect(onboard(id)).rejects.toThrow(/Verified/);
 });
+it("refuses either single contact proof before any workspace is created", async () => {
+  for (const emailOnly of [true, false]) {
+    const id = randomUUID();
+    await db.query(
+      "insert into auth.users(id,email,email_confirmed_at,phone,phone_confirmed_at) values($1,$2,$3,$4,$5)",
+      [
+        id,
+        id + "@example.test",
+        emailOnly ? new Date() : null,
+        emailOnly ? null : "919777777777",
+        emailOnly ? null : new Date(),
+      ],
+    );
+    await expect(onboard(id)).rejects.toThrow(
+      /Verified email and Indian mobile required/,
+    );
+    expect(await rpc(id, "tilebook_workspaces()")).toEqual([]);
+  }
+});
 it("requires consent and matching passwords and validates optional GST", () => {
   const signup = {
     action: "register",
@@ -113,10 +138,14 @@ it("requires consent and matching passwords and validates optional GST", () => {
     confirm: "1234567890a",
     fullName: "Test",
     terms: true,
+    privacy: true,
+    phone: "9000000011",
   };
   expect(authInput.safeParse(signup).success).toBe(true);
   for (const change of [
     { terms: false },
+    { privacy: false },
+    { phone: "1234567890" },
     { confirm: "typo" },
     { email: "invalid" },
   ])

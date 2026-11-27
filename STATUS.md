@@ -45,3 +45,11 @@ Two additional targeted regression tests passed for public catalogue fields, pho
 | Docker Supabase and hosted services | The full verify gate retains its previously recorded failure at db:test. Docker and gh are absent. No repeat reset or full verify was run. Storage policy tests now check object visibility and foreign-prefix writes. These assertions await Docker. No remote CI or staging deployment ran. |
 
 For the outstanding gate, start Docker, use a disposable local installation, run `npm run setup`, then in PowerShell run `$env:TEST_SUPABASE='1'` and `npm run verify`. The connector can identify the signed-in GitHub user, but this checkout has no remote. Use GITHUB_SETUP.md to publish with its commit history. No hosted Supabase project was identified as the TileBook staging target.
+
+## Dual-contact registration, 27 November 2026
+
+Resumed from 9776ada. The additive migration wraps the original atomic provisioning function. New owners need verified email and Indian mobile contacts. Existing memberships and authorized staff invitations retain their existing access paths.
+
+Lint and typecheck passed. Vitest passed 87 tests across 14 files. Production compilation passed. Seven Playwright tests passed locally, including the previously failing customer interface, localization, desktop and mobile navigation, accessibility, offline replay, staff backup permissions and billing.
+
+The full verify command stopped at db:test because PostgreSQL refused connections on port 54332. Auth and Mailpit also refused connections. The Docker engine pipe remained unavailable after attempting to launch Docker Desktop. With TEST_SUPABASE=1 the real customer test ran and failed at registration. Actual mailbox verification, both login methods restoring the same records, and the cross-customer browser demonstration remain unverified. The migration was exercised in the isolated PostgreSQL fixture.

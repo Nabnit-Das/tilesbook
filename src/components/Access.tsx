@@ -35,7 +35,7 @@ export default function Access({
     <main className="access-main">
       <Brand />
       <section className="access-card">
-        <h1>{t(firms.length ? "chooseWorkspace" : "startWorkspace")}</h1>
+        {!firms.length&&<p className="auth-progress">{t("registrationStep",{step:4})}</p>}<h1>{t(firms.length ? "chooseWorkspace" : "startWorkspace")}</h1>
         {firms.length ? (
           firms.map((f) => (
             <button key={f.id} className="btn" onClick={() => enter(f.id)}>

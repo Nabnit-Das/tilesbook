@@ -1,7 +1,9 @@
 import { it, expect, vi, beforeEach } from "vitest";
-vi.mock("@/server/email-config",()=>({requiresEmailProof:async()=>true}));
+vi.mock("@/server/email-config", () => ({
+  requiresEmailProof: async () => true,
+}));
 const auth = vi.hoisted(() => ({
-  signUp: vi.fn(),
+  signUp: vi.fn(), resend:vi.fn(),
   signInWithPassword: vi.fn(),
   verifyOtp: vi.fn(),
   resetPasswordForEmail: vi.fn(),
@@ -42,6 +44,8 @@ it("passes only display data and terms to Supabase signup", async () => {
     password,
     confirm: password,
     terms: true,
+    privacy: true,
+    phone: "9000000011",
     fullName: "Owner",
     role: "Owner",
   });
@@ -49,7 +53,14 @@ it("passes only display data and terms to Supabase signup", async () => {
   expect(auth.signUp).toHaveBeenCalledWith({
     email,
     password,
-    options: { data: { full_name: "Owner", terms_version: "1" } },
+    options: {
+      data: {
+        full_name: "Owner",
+        terms_version: "1",
+        privacy_version: "1",
+        registration_phone: "9000000011",
+      },
+    },
   });
 });
 it("responds identically to duplicate signup", async () => {
@@ -61,6 +72,8 @@ it("responds identically to duplicate signup", async () => {
         password,
         confirm: password,
         terms: true,
+        privacy: true,
+        phone: "9000000011",
         fullName: "Owner",
       })
     ).json(),
@@ -119,6 +132,10 @@ it("links a verified phone through the current identity without creating an OTP 
     expect(identity).toHaveBeenCalled();
     expect(auth.updateUser).toHaveBeenCalledWith({ phone: "+919000000000" });
     expect(auth.signInWithOtp).not.toHaveBeenCalled();
+    auth.verifyOtp.mockResolvedValueOnce({
+      data: { user: { id: "customer" } },
+      error: null,
+    });
     await post({ action: "confirmPhone", phone: "9000000000", otp });
     expect(auth.verifyOtp).toHaveBeenCalledWith({
       phone: "+919000000000",
@@ -128,4 +145,17 @@ it("links a verified phone through the current identity without creating an OTP 
   } finally {
     vi.unstubAllEnvs();
   }
+});
+
+it("requests a fresh verification code and reports an expired proof",async()=>{
+ expect((await post({action:"resendEmail"})).ok).toBe(true);
+ expect(auth.resend).toHaveBeenCalledWith({type:"signup",email});
+ auth.verifyOtp.mockResolvedValueOnce({error:{code:"otp_expired"}});
+ expect(await (await post({action:"confirm",otp})).json()).toEqual({error:"codeExpired"});
+});
+it("mobile login never signs up a second identity",async()=>{
+ vi.stubEnv("TILEBOOK_SMS_ENABLED","1");try{
+ expect((await post({action:"send",phone:"9000000011"})).ok).toBe(true);
+ expect(auth.signInWithOtp).toHaveBeenCalledWith({phone:"+919000000011",options:{shouldCreateUser:false}});
+ }finally{vi.unstubAllEnvs();}
 });

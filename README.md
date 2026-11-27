@@ -86,3 +86,20 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for hosted setup and [GITHUB_SETUP.md](GITHUB
 In Backups, the owner can download a v2 JSON file and select it for a confirmed restore to the same shop. Restore verifies the file against the database's export digest, serializes writes for the shop and saves a rollback point. Keep exports private. They contain customer and financial data. The 20 MB limit applies to the accounting snapshot. Back up Storage objects separately. Losing the database and its proof register requires infrastructure-level recovery.
 
 Utilities supports printable Code 39 lot numbers using uppercase letters, digits and standard Code 39 punctuation. Use QR for other lot numbers. The Tally cash voucher export covers cash receipts and cash payments. Import party masters and referenced bills into a test company first and reconcile voucher counts, debit/credit totals and bill references before posting to a live ledger. Bank, UPI, cheque and inventory vouchers are outside this export. [Tally XML reference](https://help.tallysolutions.com/sample-xml/)
+
+## Customer authentication on localhost
+
+Start Docker Desktop's Linux engine, then run the following from this folder. The migration command applies pending migrations to the local database.
+
+```powershell
+npx supabase start
+npx supabase migration up --local
+$env:TILEBOOK_TEST_SMS='1'
+npm run dev
+```
+
+Open http://localhost:3000/login. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to the local project's URL and public key. Use Mailpit on port 54324. Supabase must load the checked-in confirmation and recovery templates, enable email and phone confirmations, and load the local test numbers in supabase/config.toml.
+
+To verify the complete customer journey in a disposable local installation, set TEST_SUPABASE=1 and run npm run verify. The test creates two accounts and keeps their data. Use two unused reserved numbers for each run. The defaults end in 91 and 92. TILEBOOK_TEST_CUSTOMER_PHONE and TILEBOOK_TEST_OTHER_PHONE select a different reserved pair.
+
+Production email requires verified sender SMTP and the code templates. Enable TILEBOOK_SMS_ENABLED only after configuring a supported SMS provider. Keep test numbers and TILEBOOK_TEST_SMS confined to localhost.
