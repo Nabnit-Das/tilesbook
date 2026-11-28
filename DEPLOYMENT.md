@@ -24,21 +24,9 @@ npx supabase db push
 
 A normal `db push` applies schema migrations. Keep `supabase/seed.sql`, the two fixed OTP users and the Bhubaneswar sample ledger in local/test databases. The migrations create tenant-scoped RPCs and private `lot-photos`, `damage-photos`, `logos`, `generated-pdfs`, `backups` and `vein-match-photos` buckets when Supabase Storage is present. Storage keys start with the owning business UUID. Verify the bucket access policies in the hosted project. Current form photos and logos may be embedded in the saved record, and PDFs are streamed on request. [Supabase migrations](https://supabase.com/docs/guides/deployment/database-migrations)
 
-## 2. Configure staff sign-in
+## 2. Configure email authentication
 
-In Supabase Authentication, enable **Phone** and configure an SMS provider. Choose Twilio and enter the account, messaging service and auth credentials issued by Twilio, or select MessageBird or Vonage and enter that provider's account credentials and sender details. Configure the OTP template and sender for the intended recipients. Set the project Site URL and allowed redirects to the real HTTPS origin. Test with a staff handset. The fixed numbers in `supabase/config.toml` belong to local development. [Supabase phone sign-in](https://supabase.com/docs/guides/auth/phone-login)
-
-Provision the owner's verified E.164 phone in Supabase Auth using a trusted admin session. TileBook requests OTPs for existing Auth users. From the signed-in app, create the first firm with its real name, state and address through the firm setup action. The `tilebook_new_business` RPC assigns the current user the Owner membership, creates the main godown and opens a 14-day trial. If provisioning before a UI session, the authenticated owner can POST the following JSON to `/api/firms` using their same-origin session.
-
-```json
-{
-  "name": "Dealer's registered name",
-  "state": "Odisha",
-  "address": "Dealer's billing address"
-}
-```
-
-Provision each staff phone in Supabase Auth and use the firm's Users screen to grant its intended role. Developer email/password sign-in is available with `ENABLE_DEV_EMAIL_AUTH=1` and a pre-provisioned Auth user and membership. Keep local demo mode disabled in hosted environments.
+Enable the Supabase email provider and require email verification. Disable the phone provider. Configure Resend SMTP and use the checked-in confirmation and recovery templates with six-digit tokens. Set a ten-minute token expiry and a sixty-second resend interval. Use a verified sender domain for customer recipients. Owners register with email, verify their code, set a password, and create their business through the guarded onboarding flow. Existing memberships remain associated with the original Auth user ID. See the localhost instructions in README.md for the restricted test sender and verification steps.
 
 ## 3. Configure Vercel and PDF rendering
 

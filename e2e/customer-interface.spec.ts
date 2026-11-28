@@ -11,16 +11,16 @@ test('public mobile login localizes signup and recovery and disables the demo ev
  const exited=once(server,'exit');
  try{
  await expect.poll(async()=>{if(server.exitCode!==null)throw Error('Isolated server failed to start');return fetch(origin+'/login').then(r=>r.status).catch(()=>0);},{timeout:45000}).toBe(200);
- const result=await page.request.post(origin+'/api/auth',{headers:{'X-Forwarded-Host':'localhost'},data:{action:'verify',phone:'9999999999',otp:'123456'}});
+ const result=await page.request.post(origin+'/api/auth',{headers:{'X-Forwarded-Host':'localhost'},data:{action:'demo',role:'owner'}});
  expect(result.ok()).toBe(false);
  await page.setViewportSize({width:390,height:844});
- await page.goto(origin+'/login');await page.getByRole('button',{name:'Create account',exact:true}).click();
- await expect(page.getByLabel('Full name')).toBeVisible();
+ await page.goto(origin+'/login');
  await page.getByRole('button',{name:'Show password',exact:true}).click();await expect(page.locator('input[name=password]')).toHaveAttribute('type','text');
+ await page.getByRole('button',{name:'Create account',exact:true}).click();await expect(page.locator('input[type=tel]')).toHaveCount(0);await expect(page.getByLabel('First name')).toBeVisible();await expect(page.getByLabel('Last name')).toBeVisible();await expect(page.locator('input[name=password]')).toHaveCount(0);
  await page.getByRole('button',{name:'हिन्दी',exact:true}).click();await expect(page.getByRole('heading',{name:'खाता बनाएँ'})).toBeVisible();
  await page.getByRole('button',{name:'ଓଡ଼ିଆ',exact:true}).click();await expect(page.getByRole('heading',{name:'ଖାତା ଖୋଲନ୍ତୁ'})).toBeVisible();
  await page.getByRole('button',{name:'English',exact:true}).click();
  expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa']).analyze()).violations.filter(v=>['critical','serious'].includes(v.impact||'')).map(v=>v.id)).toEqual([]);
- await page.getByRole('button',{name:'Sign in to TileBook',exact:true}).click();await page.getByRole('button',{name:'Forgot password',exact:true}).click();await expect(page.getByLabel('Email',{exact:true})).toBeVisible();
+ await page.getByRole('link',{name:'Sign in to TileBook',exact:true}).click();await page.getByRole('link',{name:'Forgot password',exact:true}).click();await expect(page.getByLabel('Email',{exact:true})).toBeVisible();
  }finally{server.kill();await exited;}
 });

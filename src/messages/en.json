@@ -309,5 +309,17 @@
   "privacyText": "TileBook uses your contact details to verify your identity. Your authorized staff can access business records according to their role. Offline billing keeps records on this device. Signing out clears snapshots and retains pending entries for your next sign-in.",
   "codeExpired": "This code has expired. Request a new code.",
   "resendCode": "Resend code",
-  "registrationStep": "Registration · Step {step} of 4"
+  "welcomeBack": "Welcome back",
+  "firstName": "First name",
+  "lastName": "Last name",
+  "createPassword": "Create your password",
+  "signupStage": "Registration · Step {step} of 5",
+  "passwordLength": "Use at least 10 characters",
+  "changeContact": "Change contact details",
+  "passwordChanged": "Password updated. Sign in again.",
+  "registrationStep": "Registration · Step {step} of 4",
+  "deliveryUnavailable": "Email delivery is unavailable. Please try again later.",
+  "testRecipientOnly": "Use the authorized test email address.",
+  "recoveryNotice": "If this email has an account, check the inbox for a recovery code.",
+  "alreadyHaveCode": "Already have a verification code?"
 }

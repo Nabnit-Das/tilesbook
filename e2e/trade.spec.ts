@@ -26,20 +26,7 @@ test("shopkeeper bills a new party from a new tile lot, records money, prints an
   const customer = "E2E Builders " + suffix,
     product = "E2E Glossy tile " + suffix,
     lotNo = "E2E-" + suffix;
-  await page.goto("/login");
-  await page.getByRole("button", { name: "English", exact: true }).click();
-  await page.locator("input[type=tel]").fill("9999999999");
-  await page.locator("form button:not([type=button])").click();
-  await page.locator('input[autocomplete="one-time-code"]').fill("123456");
-  await Promise.all([
-    page.waitForResponse(
-      (r) =>
-        new URL(r.url()).pathname === "/api/auth" &&
-        r.request().method() === "POST" &&
-        r.ok(),
-    ),
-    page.locator("form button:not([type=button])").click(),
-  ]);
+  await page.goto("/login");await page.getByRole("button",{name:/owner/i}).click();
   await expect(page).not.toHaveURL(/\/login/, { timeout: 15000 });
   await page.waitForLoadState("networkidle");
 

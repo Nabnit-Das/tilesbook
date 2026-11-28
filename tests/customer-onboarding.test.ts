@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 import { beforeAll, afterAll, it, expect } from "vitest";
 import { openEmbedded, asUser } from "../src/server/embedded";
 import { profileSchema } from "../src/server/onboarding";
-import { authInput, demoAllowed } from "../src/server/auth-policy";
+import { demoAllowed } from "../src/server/auth-policy";
+import {customerInput} from "../src/server/customer-input";
 const owners = [randomUUID(), randomUUID(), randomUUID()],
   staff = randomUUID();
 const profile = {
@@ -111,7 +112,7 @@ it("requires verified identity even when a database role is authenticated", asyn
   await db.query("insert into auth.users(id) values($1)", [id]);
   await expect(onboard(id)).rejects.toThrow(/Verified/);
 });
-it("refuses either single contact proof before any workspace is created", async () => {
+it("admits an email-verified owner without a phone and rejects a phone-only identity", async () => {
   for (const emailOnly of [true, false]) {
     const id = randomUUID();
     await db.query(
@@ -124,15 +125,22 @@ it("refuses either single contact proof before any workspace is created", async 
         emailOnly ? null : new Date(),
       ],
     );
-    await expect(onboard(id)).rejects.toThrow(
-      /Verified email and Indian mobile required/,
-    );
-    expect(await rpc(id, "tilebook_workspaces()")).toEqual([]);
+    if(emailOnly){expect(await onboard(id)).toBeTruthy();}
+    else {await expect(onboard(id)).rejects.toThrow(/Verified email/);expect(await rpc(id,"tilebook_workspaces()")).toEqual([]);}
   }
+});
+it("uses protected enrollment state until both contacts and a subsequent password change",async()=>{
+ const who=randomUUID();await db.exec("alter table auth.users add column if not exists encrypted_password text");
+ await db.query("insert into auth.users(id,phone,phone_confirmed_at,encrypted_password) values($1,'919777777779',now(),'initial-hash')",[who]);
+ await expect(db.query("update auth.users set encrypted_password='too-early' where id=$1",[who])).rejects.toThrow(/Verify your email/);
+ await db.query("update auth.users set email='verified@example.test', email_confirmed_at=now(),raw_user_meta_data=$2 where id=$1",[who,JSON.stringify({tilebook_password_pending:false})]);
+ await expect(onboard(who)).rejects.toThrow(/Set a password/);
+ await db.query("update auth.users set encrypted_password='after-proof' where id=$1",[who]);
+ expect(await onboard(who)).toBe(await onboard(who));
 });
 it("requires consent and matching passwords and validates optional GST", () => {
   const signup = {
-    action: "register",
+    action: "setPassword",
     email: "test@example.com",
     password: "1234567890a",
     confirm: "1234567890a",
@@ -141,15 +149,13 @@ it("requires consent and matching passwords and validates optional GST", () => {
     privacy: true,
     phone: "9000000011",
   };
-  expect(authInput.safeParse(signup).success).toBe(true);
+  expect(customerInput.safeParse(signup).success).toBe(true);
   for (const change of [
     { terms: false },
     { privacy: false },
-    { phone: "1234567890" },
     { confirm: "typo" },
-    { email: "invalid" },
   ])
-    expect(authInput.safeParse({ ...signup, ...change }).success).toBe(false);
+    expect(customerInput.safeParse({ ...signup, ...change }).success).toBe(false);
   expect(profileSchema.safeParse(profile).success).toBe(true);
   expect(
     profileSchema.safeParse({ ...profile, gstStatus: "registered" }).success,
@@ -162,4 +168,15 @@ it("requires a dedicated loopback listener before accepting demo headers", () =>
     false,
   );
   expect(demoAllowed(true, true, "localhost:3150", null, false)).toBe(true);
+});
+
+it("claims an email invitation only for the verified address, preserving the invited role", async()=>{
+ const b=await onboard(owners[0]);
+ const id=randomUUID(), email=id+"@example.test";
+ await rpc(owners[0],"tilebook_mutate($1,'users','create',$2,$3)",[b,JSON.stringify({name:"Staff",email:email.toUpperCase(),role:"Godown",status:"Active",userId:owners[0]}),randomUUID()]);
+ await db.query("insert into auth.users(id,email) values($1,$2)",[id,email]);
+ expect(await rpc(id,"tilebook_workspaces()")).toEqual([]);
+ await db.query("update auth.users set email_confirmed_at=now() where id=$1",[id]);
+ expect(await rpc(id,"tilebook_workspaces()")).toEqual([{id:b,name:profile.name}]);
+ expect(await rpc(id,"tilebook_snapshot($1)",[b])).toMatchObject({role:"Godown"});
 });

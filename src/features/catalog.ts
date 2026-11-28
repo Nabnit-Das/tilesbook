@@ -415,10 +415,10 @@ export const modules: Module[] = [
     slug: "users",
     resource: "users",
     family: "admin",
-    columns: ["name", "phone", "role"],
+    columns: ["name", "email", "role"],
     fields: [
       txt("name", true),
-      txt("phone", true),
+      txt("email", true),
       choice("role", ["Manager", "Counter", "Godown", "Accountant"]),
     ],
   },

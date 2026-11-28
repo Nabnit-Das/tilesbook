@@ -10,7 +10,7 @@ export const profileSchema = z
     city: z.string().trim().min(1).max(100),
     state: z.string().trim().min(1).max(80),
     pin: z.string().regex(/^[1-9]\d{5}$/),
-    phone: z.string().regex(/^\d{10}$/),
+    phone: z.string().regex(/^(?:\d{10})?$/).optional(),
     financialYear: z.string().regex(/^20\d{2}$/),
     language: z.enum(["en", "hi", "or"]),
   })

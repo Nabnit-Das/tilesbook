@@ -6,6 +6,12 @@ import { once } from "node:events";
 import { existsSync } from "node:fs";
 export default async function start() {
   if (process.env.BASE_URL) return;
+  if(process.env.TEST_SUPABASE==='1'){
+    const {spawnSync}=await import('node:child_process');
+    const r=spawnSync('docker',['inspect','--format','{{json .Config.Env}}','supabase_auth_tilebook'],{encoding:'utf8',timeout:8000});
+    if(r.status!==0)throw Error('Real authentication tests require the running local Supabase Auth container.');
+    const env:string[]=JSON.parse(r.stdout);if(!env.some(v=>/^GOTRUE_SMTP_HOST=.*(inbucket|mailpit)/i.test(v)))throw Error('Use the Mailpit profile for automated tests to avoid external delivery.');
+  }
   const exe =
     process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ||
     [
@@ -15,19 +21,15 @@ export default async function start() {
   const server = spawn(
     process.execPath,
     process.env.TEST_SUPABASE !== "1" ? ["scripts/demo.mjs","--production","--port","3150"] : [
-      "node_modules/next/dist/bin/next",
-      "start",
-      "--hostname",
-      "127.0.0.1",
-      "--port",
-      "3150",
+      "scripts/auth-local.mjs",
     ],
     {
       stdio: "inherit",
       env: {
         ...process.env,
+        PORT: "3150",
         TILEBOOK_LOCAL_DEMO: process.env.TEST_SUPABASE === "1" ? "0" : "1",
-        TILEBOOK_TEST_SMS: process.env.TEST_SUPABASE === "1" ? "1" : "0",
+
         TILEBOOK_DATA_DIR: join(mkdtempSync(join(tmpdir(),'tilebook-e2e-')),'data'),
         ...(exe ? { PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: exe } : {}),
       },

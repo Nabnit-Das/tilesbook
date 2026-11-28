@@ -4,5 +4,5 @@ export async function requiresEmailProof(){
  if(!base||!key)return false;
  const r=await fetch(new URL('/auth/v1/settings',base),{headers:{apikey:key},cache:'no-store',signal:AbortSignal.timeout(5000)});
  if(!r.ok)return false;
- return (await r.json()).mailer_autoconfirm===false;
+ const settings=await r.json();return settings.mailer_autoconfirm===false && settings.external?.email===true;
 }

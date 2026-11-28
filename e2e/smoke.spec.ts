@@ -2,11 +2,7 @@ import {test,expect,type Page} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import {navRoutes} from '../src/lib/nav';
 async function login(page:Page){
- await page.goto('/login');
- await page.getByLabel('Mobile number').fill('9999999999');
- await page.getByRole('button',{name:'Send code'}).click();
- await page.getByLabel('Verification code').fill('123456');
- await page.getByRole('button',{name:'Continue',exact:true}).click();
+ await page.goto('/login');await page.getByRole('button',{name:/owner/i}).click();
  await expect(page.getByRole('heading',{name:'Business overview'})).toBeVisible();
 }
 for(const [size,width,height] of [['desktop',1440,960],['mobile',390,844]] as const){

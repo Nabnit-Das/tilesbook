@@ -13,12 +13,7 @@ npm run dev
 
 Open [TileBook on localhost](http://localhost:3000). Setup installs the locked dependencies, starts local Supabase, picks up its local API URL and public key, applies pending migrations, generates database types and installs the Chromium PDF renderer. The first local stack uses `supabase/seed.sql`. Existing `.env.local` files take precedence, so check their project URL when changing installations.
 
-| Demo login | Ten-digit phone | Test OTP |
-| ---------- | --------------- | -------- |
-| Owner      | `9999999999`    | `123456` |
-| Counter    | `9999999998`    | `123456` |
-
-The login form adds India's `+91` prefix. The owner manages the shop. Counter staff can issue customer bills and receive payments. The database restricts supplier prices, profit and owner administration.
+For customer registration and recovery with real email, follow **Customer authentication on localhost** below.
 
 ### Run the embedded demo without Docker
 
@@ -28,7 +23,7 @@ npx playwright install chromium
 npm run demo
 ```
 
-Open [the loopback demo](http://127.0.0.1:3000). This mode runs the same SQL migrations and seed on embedded PostgreSQL (PGlite), persists the books in `.tilebook/data` and uses local signed sessions. The local demo key is generated in `.tilebook`. Leave hosted Supabase variables unset for this mode. A Chromium or Edge installation on Windows can also supply the PDF renderer.
+Open [the loopback demo](http://127.0.0.1:3000). Choose Owner or Counter on the demo screen. This mode runs the same SQL migrations and seed on embedded PostgreSQL (PGlite), persists the books in `.tilebook/data` and uses local signed sessions. The local demo key is generated in `.tilebook`. Leave hosted Supabase variables unset for this mode. A Chromium or Edge installation on Windows can also supply the PDF renderer.
 
 ## Try a bill
 
@@ -89,17 +84,28 @@ Utilities supports printable Code 39 lot numbers using uppercase letters, digits
 
 ## Customer authentication on localhost
 
-Start Docker Desktop's Linux engine, then run the following from this folder. The migration command applies pending migrations to the local database.
+Open Windows PowerShell in this repository with Docker Desktop running. Keep the existing database volume. In the Git-ignored `.env.providers.local`, set `RESEND_API_KEY`, `RESEND_FROM_EMAIL` and `AUTHORIZED_TEST_EMAIL`. With `onboarding@resend.dev`, the recipient must be the email address on the Resend account. The app reads only the recipient setting for the restricted test. The SMTP credential belongs to the local Auth service.
 
 ```powershell
-npx supabase start
-npx supabase migration up --local
-$env:TILEBOOK_TEST_SMS='1'
-npm run dev
+node scripts/provider-config.mjs --apply
+if ($LASTEXITCODE -eq 0) { node scripts/auth-local.mjs --resend }
 ```
 
-Open http://localhost:3000/login. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to the local project's URL and public key. Use Mailpit on port 54324. Supabase must load the checked-in confirmation and recovery templates, enable email and phone confirmations, and load the local test numbers in supabase/config.toml.
+The apply command compares the active Auth configuration, reloads the existing local Supabase stack if required, and runs pending migrations. Stop an older TileBook process on port 3000 before starting the app. To check settings without restarting, run `node scripts/provider-config.mjs --check`. To apply migrations separately, run `npx supabase migration up --local`.
 
-To verify the complete customer journey in a disposable local installation, set TEST_SUPABASE=1 and run npm run verify. The test creates two accounts and keeps their data. Use two unused reserved numbers for each run. The defaults end in 91 and 92. TILEBOOK_TEST_CUSTOMER_PHONE and TILEBOOK_TEST_OTHER_PHONE select a different reserved pair.
+1. Open [registration](http://127.0.0.1:3000/register) and enter your name, business, category and authorized email. Enter the six-digit code from the verification email, choose a password, accept the terms and privacy policy, and finish business setup.
+2. Save a test record, sign out, and open [password recovery](http://127.0.0.1:3000/forgot-password). Enter the new code from the recovery email, set a different password, and sign in to confirm that the same record is present. Codes expire after ten minutes. The resend interval is sixty seconds. The verified reset step expires after five minutes.
+3. For a missing message, compare its timestamp in [Resend Emails](https://resend.com/emails) with the request. Check the destination, delivered, delayed, suppressed or bounced status, then check the inbox and spam folder. A sending-only key cannot read delivery events. Recovery sends only for an existing email account.
+4. A signed-in legacy user without a verified email can open [link email](http://127.0.0.1:3000/account/email) and verify an address on their existing identity. A signed-out phone-only user needs identity-checked operator assistance linking an email to the original Supabase user ID. Keep that ID and its memberships.
 
-Production email requires verified sender SMTP and the code templates. Enable TILEBOOK_SMS_ENABLED only after configuring a supported SMS provider. Keep test numbers and TILEBOOK_TEST_SMS confined to localhost.
+Run `npm run verify` for the standard regression suite. For isolated email end-to-end testing, switch the local profile to Mailpit and run the dedicated test from PowerShell:
+
+```powershell
+node scripts/provider-config.mjs --mailpit --apply
+if ($LASTEXITCODE -ne 0) { throw "Mailpit profile did not activate" }
+$env:TEST_SUPABASE='1'
+try { npx playwright test e2e/customer.spec.ts } finally { Remove-Item Env:TEST_SUPABASE }
+node scripts/provider-config.mjs --apply
+```
+
+The Mailpit flow creates isolated test accounts and checks registration, recovery, record persistence and tenant isolation. External delivery requires the live inbox test above.

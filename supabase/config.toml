@@ -41,40 +41,27 @@ additional_redirect_urls = ["http://127.0.0.1:3000"]
 jwt_expiry = 3600
 enable_signup = true
 
+[auth.rate_limit]
+email_sent = 12
+
 [auth.email]
 enable_signup = true
 enable_confirmations = true
 otp_length = 6
+otp_expiry = 600
+max_frequency = "60s"
 
 [auth.email.template.confirmation]
 subject = "TileBook email verification"
 content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.email_change]
+subject = "TileBook email verification"
+content_path = "./supabase/templates/email-change.html"
 
 [auth.email.template.recovery]
 subject = "TileBook password recovery"
 content_path = "./supabase/templates/recovery.html"
 
 [auth.sms]
-enable_signup = true
-enable_confirmations = true
-max_frequency = "1s"
-
-# Local Auth requires an SMS provider to enable phone sign-in. The two
-# configured test numbers are fulfilled locally without sending any SMS.
-[auth.sms.twilio]
-enabled = true
-account_sid = "placeholder"
-message_service_sid = "placeholder"
-auth_token = "placeholder"
-
-[auth.sms.test_otp]
-"919999999999" = "123456"
-"919999999998" = "123456"
-"919000000091" = "483216"
-"919000000092" = "483216"
-"919000000093" = "483216"
-"919000000094" = "483216"
-"919000000095" = "483216"
-"919000000096" = "483216"
-"919000000097" = "483216"
-"919000000098" = "483216"
+enable_signup = false

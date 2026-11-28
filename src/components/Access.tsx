@@ -4,10 +4,10 @@ import { useTranslations, useLocale } from "next-intl";
 import Brand from "./Brand";
 export default function Access({
   firms,
-  userId,
+  userId, defaults={},
 }: {
   firms: { id: string; name: string }[];
-  userId: string;
+  userId: string; defaults?: Record<string,string>;
 }) {
   const t = useTranslations(),
     locale = useLocale(),
@@ -28,7 +28,7 @@ export default function Access({
   const textField = (key: string, maxLength: number, pattern?: string) => (
     <label key={key}>
       {t(key)}
-      <input name={key} maxLength={maxLength} pattern={pattern} required />
+      <input defaultValue={defaults[key]} name={key} maxLength={maxLength} pattern={pattern} required />
     </label>
   );
   return (
@@ -68,11 +68,11 @@ export default function Access({
             {textField("ownerName", 120)}
             <label>
               {t("firm_name")}
-              <input name="name" required maxLength={120} />
+              <input defaultValue={defaults.name} name="name" required maxLength={120} />
             </label>
             <label>
               {t("category")}
-              <select name="category">
+              <select name="category" defaultValue={defaults.category}>
                 {["tiles", "sanitary", "marble", "mixed"].map((k) => (
                   <option key={k} value={k}>
                     {t(k)}
@@ -109,7 +109,7 @@ export default function Access({
               <input name="state" required maxLength={80} />
             </label>
             {textField("pin", 6, "[1-9][0-9]{5}")}
-            {textField("phone", 10, "[0-9]{10}")}
+
             <label>
               {t("financialYear")}
               <input

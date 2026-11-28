@@ -32,3 +32,12 @@
 .access-card .btn{min-height:44px}
 
 .password-box{position:relative;display:block}.password-box input{width:100%;padding-inline-end:3.4rem!important}.password-toggle{position:absolute;inset-inline-end:0;top:0;bottom:0;min-width:44px;display:grid;place-items:center;color:#165855}.auth-methods{display:flex;background:#edf4f3;border-radius:10px;padding:4px;gap:4px}.auth-methods button{flex:1;min-height:44px;border-radius:7px}.auth-methods [aria-pressed=true]{background:#095750;color:white}.auth-progress{color:#16615b;font-weight:600}.customer-login .login-panel form{margin-block:auto;padding-block:1rem}
+
+.customer-login{min-height:100svh;height:auto;align-items:stretch;overflow:visible}
+.customer-login .login-brand{min-width:0;justify-content:center;gap:1.5rem;padding:clamp(1.25rem,4vw,3.5rem)}
+.customer-login .login-brand .brand{max-width:100%;font-size:1.8rem}
+.customer-login .login-panel{min-width:0;overflow:visible;padding:5rem clamp(1rem,4vw,3rem) 2rem}
+.customer-login form{display:grid;gap:.85rem}.customer-login .login-panel form label{margin:0}
+.customer-login .login-panel input:not([type=checkbox]),.customer-login .login-panel select{min-height:44px;width:100%;box-sizing:border-box;border:1px solid #839a9a;border-radius:8px;background:white;color:#14183f;padding:.65rem .8rem;font:inherit}
+.customer-login .login-panel .btn{min-height:44px}.customer-login .login-panel h2{margin:.25rem 0}
+@media(max-width:760px){.customer-login .login-brand{justify-content:flex-start;padding:1rem 1.25rem}.customer-login .login-panel{width:100%;font-size:1rem}.customer-login .login-panel form{width:min(100%,26rem)}}

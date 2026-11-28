@@ -48,4 +48,7 @@ server.on("error", (error) => {
   }
 
   process.exit(1);
+});server.listen(port, hostname, () => {
+  process.tilebookLoopbackDemo = true;
+  console.log('TileBook demo listening on http://' + hostname + ':' + port);
 });

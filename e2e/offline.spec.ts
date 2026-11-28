@@ -1,16 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('creates a bill offline and replays it once on reconnect', async ({ page, context }) => {
-  const login = await context.request.post('/api/auth', {
-    data: { action: 'send', phone: '9999999999' }, // Replace with the phone/helper used in e2e/trade.spec.ts if different
-  });
-  expect(login.ok(), `OTP send failed (${login.status()}): ${await login.text()}`).toBe(true);
-
-  const verify = await context.request.post('/api/auth', {
-    data: { action: 'verify', phone: '9999999999', otp: '123456' },
-  });
-  expect(verify.ok(), `OTP verify failed (${verify.status()}): ${await verify.text()}`).toBe(true);
-
+  expect((await context.request.post('/api/auth',{data:{action:'demo',role:'owner'}})).ok()).toBe(true);
   await page.goto('/invoices?new=1');
   await expect(page.locator('.tb-recordform,.tb-docform,.tb-formhead').first()).toBeVisible();
 

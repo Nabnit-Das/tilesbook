@@ -14,7 +14,6 @@ test("verified email customer provisions once, recovers access and restores reco
     !["127.0.0.1", "localhost"].includes(new URL(baseURL).hostname)
   )
     throw Error("Local test app required");
-  const phone = process.env.TILEBOOK_TEST_CUSTOMER_PHONE || "9000000091";
   const email = "tilebook-" + randomUUID() + "@example.test",
     password = "Local-test-" + randomUUID(),
     replacement = password + "-new";
@@ -58,27 +57,6 @@ test("verified email customer provisions once, recovers access and restores reco
   await page
     .getByRole("button", { name: "Create account", exact: true })
     .click();
-  const register = {
-    action: "register",
-    password,
-    confirm: password,
-    fullName: "Test Owner",
-    terms: true,
-    privacy: true,
-    phone,
-  };
-  expect((await auth(page.request, register)).ok()).toBe(true);
-  expect((await auth(page.request, { action: "email", password })).ok()).toBe(
-    false,
-  );
-  expect(
-    (
-      await auth(page.request, {
-        action: "confirm",
-        otp: await code("verification"),
-      })
-    ).ok(),
-  ).toBe(true);
   const profile = {
     name: "Local shop",
     category: "tiles",
@@ -92,17 +70,19 @@ test("verified email customer provisions once, recovers access and restores reco
     financialYear: "2026",
     gstStatus: "unregistered",
   };
-  expect(
-    (await page.request.post("/api/workspaces", { data: profile })).ok(),
-  ).toBe(false);
-  expect((await auth(page.request, { action: "linkPhone", phone })).ok()).toBe(
-    true,
-  );
-  expect(
-    (
-      await auth(page.request, { action: "confirmPhone", phone, otp: "483216" })
-    ).ok(),
-  ).toBe(true);
+  const customer=(ctx:APIRequestContext,values:object)=>ctx.post("/api/customer",{data:values});
+  const pass={password,confirm:password,terms:true,privacy:true};
+  async function enroll(ctx:APIRequestContext, email:string){
+    const start={action:"start",email,firstName:"Test",lastName:"Owner",company:"Local shop",category:"tiles"};
+    expect((await customer(ctx,start)).ok()).toBe(true);
+    expect((await customer(ctx,{action:"setPassword",...pass})).ok()).toBe(false);
+    expect((await ctx.post("/api/workspaces",{data:profile})).ok()).toBe(false);
+    expect((await customer(ctx,{action:"emailProof",email,code:"000000"})).ok()).toBe(false);
+    expect((await customer(ctx,{action:"emailProof",email,code:await code("verification",email)})).ok()).toBe(true);
+    expect((await ctx.post("/api/workspaces",{data:profile})).ok()).toBe(false);
+    expect((await customer(ctx,{action:"setPassword",...pass})).ok()).toBe(true);
+  }
+  await enroll(page.request,email);
   await page.goto("/access");
   await expect(
     page.getByRole("heading", { name: "Set up your business" }),
@@ -127,6 +107,7 @@ test("verified email customer provisions once, recovers access and restores reco
       })
     ).ok(),
   ).toBe(true);
+  const canonical=await (await page.request.get("/api/auth")).json();
   const second = await playwright.request.newContext({ baseURL });
   try {
     expect(
@@ -140,37 +121,21 @@ test("verified email customer provisions once, recovers access and restores reco
     ).toEqual([expect.objectContaining({ name: "Persistent customer" })]);
     expect((await auth(second, { action: "logout" })).ok()).toBe(true);
     expect((await second.get("/api/auth")).status()).toBe(401);
-    expect((await auth(second, register)).ok()).toBe(true);
-    expect((await auth(second, { action: "forgot" })).ok()).toBe(true);
-    expect(
-      (
-        await auth(second, {
-          action: "reset",
-          otp: await code("recovery"),
-          password: replacement,
-          confirm: replacement,
-        })
-      ).ok(),
-    ).toBe(true);
-    expect(
-      (await auth(second, { action: "email", password: replacement })).ok(),
-    ).toBe(true);
-    await auth(second, { action: "logout" });
-    expect((await auth(second, { action: "send", phone })).ok()).toBe(true);
-    expect(
-      (await auth(second, { action: "verify", phone, otp: "483216" })).ok(),
-    ).toBe(true);
-    expect(
-      (await (await second.get("/api/data")).json()).records.parties,
-    ).toEqual([expect.objectContaining({ name: "Persistent customer" })]);
-    await auth(second, {action:"logout"});
-    const otherEmail="tilebook-"+randomUUID()+"@example.test";
-    const otherPhone=process.env.TILEBOOK_TEST_OTHER_PHONE||"9000000092";
-    const other=(values:object)=>second.post("/api/auth",{data:{email:otherEmail,...values}});
-    expect((await other({...register,phone:otherPhone})).ok()).toBe(true);
-    expect((await other({action:"confirm",otp:await code("verification",otherEmail)})).ok()).toBe(true);
-    expect((await other({action:"linkPhone",phone:otherPhone})).ok()).toBe(true);
-    expect((await other({action:"confirmPhone",phone:otherPhone,otp:"483216"})).ok()).toBe(true);
+    const recover=async(next:string)=>{
+      const contact={email};
+      expect((await customer(second,{action:"recoverEmail",...contact})).ok()).toBe(true);
+      expect((await customer(second,{action:"checkRecoveryEmail",...contact,code:await code("recovery")})).ok()).toBe(true);
+      expect((await customer(second,{action:"resetPassword",password:next,confirm:next})).ok()).toBe(true);
+      expect((await second.get("/api/auth")).status()).toBe(401);
+    };
+    await recover(replacement);
+    expect((await auth(second,{action:"email",password})).ok()).toBe(false);
+    expect((await auth(second,{action:"email",password:replacement})).ok()).toBe(true);
+    expect(await (await second.get("/api/auth")).json()).toEqual(canonical);
+    expect((await (await second.get("/api/workspaces")).json())[0].id).toBe(id);
+    expect((await (await second.get("/api/data")).json()).records.parties).toEqual([expect.objectContaining({name:"Persistent customer"})]);
+    await auth(second,{action:"logout"});
+    const otherEmail="tilebook-"+randomUUID()+"@example.test";await enroll(second,otherEmail);
     const otherWorkspace=await second.post("/api/workspaces",{data:{...profile,name:"Second test shop"}});
     expect(otherWorkspace.ok()).toBe(true);
     expect((await otherWorkspace.json()).id).not.toBe(id);
